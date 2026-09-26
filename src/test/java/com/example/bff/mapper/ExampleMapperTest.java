@@ -57,8 +57,11 @@ class ExampleMapperTest {
 
         Response response =
                 mapper.toResponse(
-                        new ExampleAggregate(
-                                new ApiResponse1("res1"), apiResponse2, apiResponse3ByName));
+                        ExampleAggregate.builder()
+                                .apiResponse1(new ApiResponse1("res1"))
+                                .apiResponse2(apiResponse2)
+                                .apiResponse3ByName(apiResponse3ByName)
+                                .build());
 
         assertThat(response.getApiResponse1()).isEqualTo("res1");
         Response.Section section = response.getApiResponse2();
@@ -94,15 +97,17 @@ class ExampleMapperTest {
 
         Response response =
                 mapper.toResponse(
-                        new ExampleAggregate(
-                                null, apiResponse2, Map.of("main", new ApiResponse3("t", null))));
+                        ExampleAggregate.builder()
+                                .apiResponse2(apiResponse2)
+                                .apiResponse3ByName(Map.of("main", new ApiResponse3("t", null)))
+                                .build());
 
         assertThat(response.getApiResponse2().getMain().getFirst().getDetails()).isEmpty();
     }
 
     @Test
     void 外部APIの結果がnullでも取得できた部分だけでレスポンスを返す() {
-        Response response = mapper.toResponse(new ExampleAggregate(null, null, Map.of()));
+        Response response = mapper.toResponse(ExampleAggregate.builder().build());
 
         assertThat(response.getApiResponse1()).isNull();
         assertThat(response.getApiResponse2().getSummary()).isNull();
@@ -115,7 +120,9 @@ class ExampleMapperTest {
     void 明細リストがnullの場合は空のリストを返す() {
         Response response =
                 mapper.toResponse(
-                        new ExampleAggregate(null, new ApiResponse2("s", null), Map.of()));
+                        ExampleAggregate.builder()
+                                .apiResponse2(new ApiResponse2("s", null))
+                                .build());
 
         assertThat(response.getApiResponse2().getSummary()).isEqualTo("s");
         assertThat(response.getApiResponse2().getMain()).isEmpty();
@@ -127,7 +134,7 @@ class ExampleMapperTest {
                 new ApiResponse2("summary", Arrays.asList(null, detail(null, 1)));
 
         Response.Section section =
-                mapper.toResponse(new ExampleAggregate(null, apiResponse2, Map.of()))
+                mapper.toResponse(ExampleAggregate.builder().apiResponse2(apiResponse2).build())
                         .getApiResponse2();
 
         assertThat(section.getMain()).isEmpty();

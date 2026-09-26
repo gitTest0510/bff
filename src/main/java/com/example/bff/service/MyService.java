@@ -67,7 +67,11 @@ public class MyService {
 
         apiCaller.awaitAll(api1, api2, api3);
 
-        return new ExampleAggregate(api1.join().orElse(null), api2.join(), api3.join());
+        return ExampleAggregate.builder()
+                .apiResponse1(api1.join().orElse(null))
+                .apiResponse2(api2.join())
+                .apiResponse3ByName(api3.join())
+                .build();
     }
 
     private static List<String> detailNames(ApiResponse2 apiResponse2) {

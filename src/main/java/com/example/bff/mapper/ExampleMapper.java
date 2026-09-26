@@ -35,7 +35,7 @@ public class ExampleMapper {
 
     /** 集約した外部APIの結果から最終レスポンスを組み立てる. 取得できなかった部分は null / 空で返す. */
     public Response toResponse(ExampleAggregate aggregate) {
-        ApiResponse1 apiResponse1 = aggregate.apiResponse1();
+        ApiResponse1 apiResponse1 = aggregate.getApiResponse1();
 
         return Response.builder()
                 .apiResponse1(Objects.isNull(apiResponse1) ? null : apiResponse1.getTest())
@@ -44,12 +44,12 @@ public class ExampleMapper {
     }
 
     private Response.Section toSection(ExampleAggregate aggregate) {
-        ApiResponse2 apiResponse2 = aggregate.apiResponse2();
+        ApiResponse2 apiResponse2 = aggregate.getApiResponse2();
         List<ApiResponse2.MyDetail> myDetails =
                 Objects.isNull(apiResponse2)
                         ? List.of()
                         : Objects.requireNonNullElse(apiResponse2.getMyDetails(), List.of());
-        Map<String, ApiResponse3> apiResponse3ByName = aggregate.apiResponse3ByName();
+        Map<String, ApiResponse3> apiResponse3ByName = aggregate.getApiResponse3ByName();
 
         return Response.Section.builder()
                 .summary(Objects.isNull(apiResponse2) ? null : apiResponse2.getSummary())
