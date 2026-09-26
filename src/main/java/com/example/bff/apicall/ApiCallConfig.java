@@ -1,4 +1,4 @@
-package com.example.bff.orchestration;
+package com.example.bff.apicall;
 
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;

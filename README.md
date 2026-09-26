@@ -159,7 +159,7 @@ bff/
     │   │   │   ├── request/            画面から受け取るリクエスト DTO
     │   │   │   └── response/           画面に返すレスポンス DTO
     │   │   ├── service/                処理の流れ（どの外部APIをどの順で呼ぶか）と外部APIクライアントのインターフェース
-    │   │   ├── orchestration/          外部API呼び出しの実行基盤（並列実行・タイムアウト・ログ）
+    │   │   ├── apicall/                外部API呼び出しの共通処理（並列実行・タイムアウト・ログ）
     │   │   ├── integration/            外部APIとの接続（スタブ / HTTP の実装と設定）
     │   │   │   ├── request/            外部APIに送るリクエスト DTO
     │   │   │   ├── response/           外部APIから受け取るレスポンス DTO
@@ -196,7 +196,9 @@ bff/
 
 インターフェースを `service` に置いているのは、`MyService` が実装（スタブか HTTP か）を知らずに済むようにするためです。
 
-### orchestration（外部API呼び出しの実行基盤）
+### apicall（外部API呼び出しの共通処理）
+
+どの API を、どの順で呼ぶかは `MyService` が決めます。`apicall` はその呼び出しを実行する道具側で、個々の API のことは知りません。
 
 | クラス | 役割 |
 |---|---|
@@ -307,7 +309,7 @@ WARN 外部API呼び出し api=API_3 key=bar result=失敗(タイムアウト) e
 | `cause` | 失敗時の原因の要約 |
 
 - スタックトレースは、呼び出し元の扱いを出すログに任せています。`callOrEmpty` の「結果なしで続行します」の WARN と、処理全体がエラーになったときの `GlobalExceptionHandler` の ERROR です。
-- ログが多すぎる場合は `logging.level.com.example.bff.orchestration.ApiCaller=WARN` にすると、失敗時だけ出ます。
+- ログが多すぎる場合は `logging.level.com.example.bff.apicall.ApiCaller=WARN` にすると、失敗時だけ出ます。
 
 ## テスト
 

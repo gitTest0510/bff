@@ -9,6 +9,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.example.bff.apicall.ApiCallProperties;
+import com.example.bff.apicall.ApiCaller;
 import com.example.bff.controller.request.Request;
 import com.example.bff.controller.response.Response;
 import com.example.bff.exception.ExternalApiException;
@@ -17,8 +19,6 @@ import com.example.bff.integration.response.ApiResponse1;
 import com.example.bff.integration.response.ApiResponse2;
 import com.example.bff.integration.response.ApiResponse3;
 import com.example.bff.mapper.ExampleMapper;
-import com.example.bff.orchestration.ApiCallProperties;
-import com.example.bff.orchestration.ApiCaller;
 import com.example.bff.testsupport.JsonFixtures;
 import java.time.Duration;
 import java.util.Arrays;

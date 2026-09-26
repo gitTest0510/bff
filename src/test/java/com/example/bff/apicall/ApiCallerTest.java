@@ -1,4 +1,4 @@
-package com.example.bff.orchestration;
+package com.example.bff.apicall;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
