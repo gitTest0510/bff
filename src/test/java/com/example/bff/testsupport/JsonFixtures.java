@@ -16,35 +16,34 @@ import tools.jackson.databind.json.JsonMapper;
  */
 public final class JsonFixtures {
 
-    /** 外部APIのレスポンスには BFF で使わない項目も含まれるため、未知の項目は無視する. */
-    private static final JsonMapper MAPPER =
-            JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
+  /** 外部APIのレスポンスには BFF で使わない項目も含まれるため、未知の項目は無視する. */
+  private static final JsonMapper MAPPER =
+      JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
 
-    private JsonFixtures() {}
+  private JsonFixtures() {}
 
-    /**
-     * JSON ファイルを読み込んで指定の型に変換する.
-     *
-     * @param path fixtures ディレクトリからの相対パス（例: {@code "api-response2/normal.json"}）
-     */
-    public static <T> T load(String path, Class<T> type) {
-        return MAPPER.readValue(read(path), type);
+  /**
+   * JSON ファイルを読み込んで指定の型に変換する.
+   *
+   * @param path fixtures ディレクトリからの相対パス（例: {@code "api-response2/normal.json"}）
+   */
+  public static <T> T load(String path, Class<T> type) {
+    return MAPPER.readValue(read(path), type);
+  }
+
+  /**
+   * JSON ファイルを文字列のまま読み込む. 外部APIのモック（MockRestServiceServer 等）のレスポンス本文に使う.
+   *
+   * @param path fixtures ディレクトリからの相対パス（例: {@code "api-response2/normal.json"}）
+   */
+  public static String read(String path) {
+    String resource = "/fixtures/" + path;
+    try (InputStream in = JsonFixtures.class.getResourceAsStream(resource)) {
+      return new String(
+          Objects.requireNonNull(in, () -> "テスト用 JSON が見つかりません: " + resource).readAllBytes(),
+          StandardCharsets.UTF_8);
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
     }
-
-    /**
-     * JSON ファイルを文字列のまま読み込む. 外部APIのモック（MockRestServiceServer 等）のレスポンス本文に使う.
-     *
-     * @param path fixtures ディレクトリからの相対パス（例: {@code "api-response2/normal.json"}）
-     */
-    public static String read(String path) {
-        String resource = "/fixtures/" + path;
-        try (InputStream in = JsonFixtures.class.getResourceAsStream(resource)) {
-            return new String(
-                    Objects.requireNonNull(in, () -> "テスト用 JSON が見つかりません: " + resource)
-                            .readAllBytes(),
-                    StandardCharsets.UTF_8);
-        } catch (IOException ex) {
-            throw new UncheckedIOException(ex);
-        }
-    }
+  }
 }

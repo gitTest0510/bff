@@ -5,5 +5,5 @@ import com.example.bff.integration.response.ApiResponse3;
 
 public interface Client3 {
 
-    ApiResponse3 execute3(ApiRequest3 apiRequest3);
+  ApiResponse3 execute3(ApiRequest3 apiRequest3);
 }

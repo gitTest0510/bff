@@ -17,22 +17,22 @@ import org.springframework.web.client.RestClient;
 @ConditionalOnProperty(name = ClientType.PROPERTY, havingValue = ClientType.HTTP)
 public class Client1HttpImpl implements Client1 {
 
-    private final RestClient restClient;
+  private final RestClient restClient;
 
-    /**
-     * Spring Boot が用意する RestClient.Builder を使う. Boot の Jackson 設定・タイムアウト設定（spring.http.clients.*）が
-     * 適用される.
-     */
-    public Client1HttpImpl(RestClient.Builder builder, ExternalApiProperties properties) {
-        this.restClient = builder.baseUrl(properties.api1().baseUrl().toString()).build();
-    }
+  /**
+   * Spring Boot が用意する RestClient.Builder を使う. Boot の Jackson 設定・タイムアウト設定（spring.http.clients.*）が
+   * 適用される.
+   */
+  public Client1HttpImpl(RestClient.Builder builder, ExternalApiProperties properties) {
+    this.restClient = builder.baseUrl(properties.api1().baseUrl().toString()).build();
+  }
 
-    @Override
-    public ApiResponse1 execute1(ApiRequest apiRequest) {
-        return restClient
-                .get()
-                .uri(uri -> uri.path("/api1").queryParam("id", apiRequest.getId()).build())
-                .retrieve()
-                .body(ApiResponse1.class);
-    }
+  @Override
+  public ApiResponse1 execute1(ApiRequest apiRequest) {
+    return restClient
+        .get()
+        .uri(uri -> uri.path("/api1").queryParam("id", apiRequest.getId()).build())
+        .retrieve()
+        .body(ApiResponse1.class);
+  }
 }

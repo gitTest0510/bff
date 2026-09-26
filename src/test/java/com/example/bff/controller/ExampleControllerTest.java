@@ -27,123 +27,130 @@ import org.springframework.test.web.servlet.MockMvc;
 @WebMvcTest(ExampleController.class)
 class ExampleControllerTest {
 
-    @Autowired private MockMvc mockMvc;
+  @Autowired private MockMvc mockMvc;
 
-    @MockitoBean private MyService service;
+  @MockitoBean private MyService service;
 
-    @Test
-    void クエリパラメータを受け取りレスポンスをJSONで返却する() throws Exception {
-        Response response =
-                Response.builder()
-                        .apiResponse1("res1")
-                        .apiResponse2(
-                                Response.Section.builder()
-                                        .summary("summary")
-                                        .main(List.of())
-                                        .sub(List.of())
-                                        .other(List.of())
-                                        .build())
-                        .build();
-        when(service.execute(any(Request.class))).thenReturn(response);
+  @Test
+  void クエリパラメータを受け取りレスポンスをJSONで返却する() throws Exception {
+    Response response =
+        Response.builder()
+            .apiResponse1("res1")
+            .apiResponse2(
+                Response.Section.builder()
+                    .summary("summary")
+                    .main(List.of())
+                    .sub(List.of())
+                    .other(List.of())
+                    .build())
+            .build();
+    when(service.execute(any(Request.class))).thenReturn(response);
 
-        mockMvc.perform(get("/example").param("no", "001"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.['Apiレスポンス1']").value("res1"))
-                .andExpect(jsonPath("$.['Apiレスポンス2'].summary").value("summary"));
+    mockMvc
+        .perform(get("/example").param("no", "001"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.['Apiレスポンス1']").value("res1"))
+        .andExpect(jsonPath("$.['Apiレスポンス2'].summary").value("summary"));
 
-        verify(service).execute(argThat(request -> "001".equals(request.getNo())));
-    }
+    verify(service).execute(argThat(request -> "001".equals(request.getNo())));
+  }
 
-    @Test
-    void noが未指定の場合は400をProblemDetail形式で返却する() throws Exception {
-        mockMvc.perform(get("/example"))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().contentType("application/problem+json"))
-                .andExpect(jsonPath("$.status").value(400));
+  @Test
+  void noが未指定の場合は400をProblemDetail形式で返却する() throws Exception {
+    mockMvc
+        .perform(get("/example"))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().contentType("application/problem+json"))
+        .andExpect(jsonPath("$.status").value(400));
 
-        verify(service, never()).execute(any());
-    }
+    verify(service, never()).execute(any());
+  }
 
-    @Test
-    void POSTでJSONボディを受け取りレスポンスをJSONで返却する() throws Exception {
-        when(service.execute(any(Request.class)))
-                .thenReturn(Response.builder().apiResponse1("res1").build());
+  @Test
+  void POSTでJSONボディを受け取りレスポンスをJSONで返却する() throws Exception {
+    when(service.execute(any(Request.class)))
+        .thenReturn(Response.builder().apiResponse1("res1").build());
 
-        mockMvc.perform(
-                        post("/example/search")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content("{\"no\":\"001\"}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.['Apiレスポンス1']").value("res1"));
+    mockMvc
+        .perform(
+            post("/example/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"no\":\"001\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.['Apiレスポンス1']").value("res1"));
 
-        verify(service).execute(argThat(request -> "001".equals(request.getNo())));
-    }
+    verify(service).execute(argThat(request -> "001".equals(request.getNo())));
+  }
 
-    @Test
-    void POSTでnoが空の場合は400をProblemDetail形式で返却する() throws Exception {
-        mockMvc.perform(
-                        post("/example/search")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content("{\"no\":\" \"}"))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().contentType("application/problem+json"))
-                .andExpect(jsonPath("$.status").value(400));
+  @Test
+  void POSTでnoが空の場合は400をProblemDetail形式で返却する() throws Exception {
+    mockMvc
+        .perform(
+            post("/example/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"no\":\" \"}"))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().contentType("application/problem+json"))
+        .andExpect(jsonPath("$.status").value(400));
 
-        verify(service, never()).execute(any());
-    }
+    verify(service, never()).execute(any());
+  }
 
-    @Test
-    void POSTでJSONが不正な場合は400を返却する() throws Exception {
-        mockMvc.perform(
-                        post("/example/search")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content("{\"no\":"))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().contentType("application/problem+json"));
+  @Test
+  void POSTでJSONが不正な場合は400を返却する() throws Exception {
+    mockMvc
+        .perform(
+            post("/example/search").contentType(MediaType.APPLICATION_JSON).content("{\"no\":"))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().contentType("application/problem+json"));
 
-        verify(service, never()).execute(any());
-    }
+    verify(service, never()).execute(any());
+  }
 
-    @Test
-    void POSTでJSON以外の形式の場合は415を返却する() throws Exception {
-        mockMvc.perform(
-                        post("/example/search")
-                                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                                .content("no=001"))
-                .andExpect(status().isUnsupportedMediaType());
+  @Test
+  void POSTでJSON以外の形式の場合は415を返却する() throws Exception {
+    mockMvc
+        .perform(
+            post("/example/search")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .content("no=001"))
+        .andExpect(status().isUnsupportedMediaType());
 
-        verify(service, never()).execute(any());
-    }
+    verify(service, never()).execute(any());
+  }
 
-    @Test
-    void 欠かせない外部APIの呼び出しに失敗した場合は502を返却する() throws Exception {
-        when(service.execute(any(Request.class)))
-                .thenThrow(new ExternalApiException("API_2", new IllegalStateException("down")));
+  @Test
+  void 欠かせない外部APIの呼び出しに失敗した場合は502を返却する() throws Exception {
+    when(service.execute(any(Request.class)))
+        .thenThrow(new ExternalApiException("API_2", new IllegalStateException("down")));
 
-        mockMvc.perform(get("/example").param("no", "001"))
-                .andExpect(status().isBadGateway())
-                .andExpect(content().contentType("application/problem+json"))
-                .andExpect(jsonPath("$.detail").value("外部APIの呼び出しに失敗しました"));
-    }
+    mockMvc
+        .perform(get("/example").param("no", "001"))
+        .andExpect(status().isBadGateway())
+        .andExpect(content().contentType("application/problem+json"))
+        .andExpect(jsonPath("$.detail").value("外部APIの呼び出しに失敗しました"));
+  }
 
-    @Test
-    void 欠かせない外部APIの呼び出しがタイムアウトした場合は504を返却する() throws Exception {
-        when(service.execute(any(Request.class)))
-                .thenThrow(new ExternalApiException("API_2", new TimeoutException()));
+  @Test
+  void 欠かせない外部APIの呼び出しがタイムアウトした場合は504を返却する() throws Exception {
+    when(service.execute(any(Request.class)))
+        .thenThrow(new ExternalApiException("API_2", new TimeoutException()));
 
-        mockMvc.perform(get("/example").param("no", "001"))
-                .andExpect(status().isGatewayTimeout())
-                .andExpect(content().contentType("application/problem+json"));
-    }
+    mockMvc
+        .perform(get("/example").param("no", "001"))
+        .andExpect(status().isGatewayTimeout())
+        .andExpect(content().contentType("application/problem+json"));
+  }
 
-    @Test
-    void 予期しない例外の場合は500をProblemDetail形式で返却する() throws Exception {
-        when(service.execute(any(Request.class))).thenThrow(new IllegalStateException("boom"));
+  @Test
+  void 予期しない例外の場合は500をProblemDetail形式で返却する() throws Exception {
+    when(service.execute(any(Request.class))).thenThrow(new IllegalStateException("boom"));
 
-        mockMvc.perform(get("/example").param("no", "001"))
-                .andExpect(status().isInternalServerError())
-                .andExpect(content().contentType("application/problem+json"))
-                .andExpect(jsonPath("$.status").value(500))
-                .andExpect(jsonPath("$.detail").value("予期しないエラーが発生しました"));
-    }
+    mockMvc
+        .perform(get("/example").param("no", "001"))
+        .andExpect(status().isInternalServerError())
+        .andExpect(content().contentType("application/problem+json"))
+        .andExpect(jsonPath("$.status").value(500))
+        .andExpect(jsonPath("$.detail").value("予期しないエラーが発生しました"));
+  }
 }

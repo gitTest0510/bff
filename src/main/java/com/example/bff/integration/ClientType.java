@@ -10,9 +10,9 @@ package com.example.bff.integration;
  */
 public final class ClientType {
 
-    public static final String PROPERTY = "bff.client.type";
-    public static final String STUB = "stub";
-    public static final String HTTP = "http";
+  public static final String PROPERTY = "bff.client.type";
+  public static final String STUB = "stub";
+  public static final String HTTP = "http";
 
-    private ClientType() {}
+  private ClientType() {}
 }

@@ -15,63 +15,63 @@ import lombok.Value;
  * <p>イミュータブル. 生成は各クラスの builder() からのみ行う. List 項目は {@link Singular} により、未設定なら空、設定時は変更不可のコピーを保持する.
  */
 @JsonPropertyOrder({
-    "Apiレスポンス1",
-    "Apiレスポンス2",
+  "Apiレスポンス1",
+  "Apiレスポンス2",
 })
 @Value
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Response {
 
-    @JsonProperty("Apiレスポンス1")
-    String apiResponse1;
+  @JsonProperty("Apiレスポンス1")
+  String apiResponse1;
 
-    @JsonProperty("Apiレスポンス2")
-    Section apiResponse2;
+  @JsonProperty("Apiレスポンス2")
+  Section apiResponse2;
 
-    @JsonPropertyOrder({
-        "summary", "main", "sub", "other",
-    })
-    @Value
-    @Builder
-    @AllArgsConstructor(access = AccessLevel.PRIVATE)
-    public static class Section {
-        String summary;
+  @JsonPropertyOrder({
+    "summary", "main", "sub", "other",
+  })
+  @Value
+  @Builder
+  @AllArgsConstructor(access = AccessLevel.PRIVATE)
+  public static class Section {
+    String summary;
 
-        @Singular("mainItem")
-        List<Item> main;
+    @Singular("mainItem")
+    List<Item> main;
 
-        @Singular("subItem")
-        List<Item> sub;
+    @Singular("subItem")
+    List<Item> sub;
 
-        @Singular("otherItem")
-        List<Item> other;
-    }
+    @Singular("otherItem")
+    List<Item> other;
+  }
 
-    /** main / sub / other 共通の明細. */
-    @JsonPropertyOrder({
-        "name", "price", "memo", "details",
-    })
-    @Value
-    @Builder
-    @AllArgsConstructor(access = AccessLevel.PRIVATE)
-    public static class Item {
-        String name;
-        String price;
-        String memo;
-        @Singular List<Detail> details;
-    }
+  /** main / sub / other 共通の明細. */
+  @JsonPropertyOrder({
+    "name", "price", "memo", "details",
+  })
+  @Value
+  @Builder
+  @AllArgsConstructor(access = AccessLevel.PRIVATE)
+  public static class Item {
+    String name;
+    String price;
+    String memo;
+    @Singular List<Detail> details;
+  }
 
-    @JsonPropertyOrder({
-        "name", "test", "test2", "test3",
-    })
-    @Value
-    @Builder
-    @AllArgsConstructor(access = AccessLevel.PRIVATE)
-    public static class Detail {
-        String name;
-        String test;
-        String test2;
-        String test3;
-    }
+  @JsonPropertyOrder({
+    "name", "test", "test2", "test3",
+  })
+  @Value
+  @Builder
+  @AllArgsConstructor(access = AccessLevel.PRIVATE)
+  public static class Detail {
+    String name;
+    String test;
+    String test2;
+    String test3;
+  }
 }

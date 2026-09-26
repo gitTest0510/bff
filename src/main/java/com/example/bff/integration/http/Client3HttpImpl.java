@@ -19,24 +19,24 @@ import org.springframework.web.client.RestClient;
 @ConditionalOnProperty(name = ClientType.PROPERTY, havingValue = ClientType.HTTP)
 public class Client3HttpImpl implements Client3 {
 
-    private final RestClient restClient;
+  private final RestClient restClient;
 
-    public Client3HttpImpl(RestClient.Builder builder, ExternalApiProperties properties) {
-        this.restClient = builder.baseUrl(properties.api3().baseUrl().toString()).build();
-    }
+  public Client3HttpImpl(RestClient.Builder builder, ExternalApiProperties properties) {
+    this.restClient = builder.baseUrl(properties.api3().baseUrl().toString()).build();
+  }
 
-    @Override
-    public ApiResponse3 execute3(ApiRequest3 apiRequest3) {
-        try {
-            return restClient
-                    .post()
-                    .uri("/api3")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(apiRequest3)
-                    .retrieve()
-                    .body(ApiResponse3.class);
-        } catch (HttpClientErrorException.NotFound ex) {
-            return null;
-        }
+  @Override
+  public ApiResponse3 execute3(ApiRequest3 apiRequest3) {
+    try {
+      return restClient
+          .post()
+          .uri("/api3")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(apiRequest3)
+          .retrieve()
+          .body(ApiResponse3.class);
+    } catch (HttpClientErrorException.NotFound ex) {
+      return null;
     }
+  }
 }

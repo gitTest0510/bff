@@ -21,41 +21,42 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.HttpClientErrorException;
 
 @RestClientTest(
-        components = Client2HttpImpl.class,
-        properties = {
-            "bff.client.type=http",
-            "bff.client.api1.base-url=http://api1.test",
-            "bff.client.api2.base-url=http://api2.test",
-            "bff.client.api3.base-url=http://api3.test"
-        })
+    components = Client2HttpImpl.class,
+    properties = {
+      "bff.client.type=http",
+      "bff.client.api1.base-url=http://api1.test",
+      "bff.client.api2.base-url=http://api2.test",
+      "bff.client.api3.base-url=http://api3.test"
+    })
 @Import(HttpClientConfig.class)
 class Client2HttpImplTest {
 
-    @Autowired private Client2HttpImpl client;
-    @Autowired private MockRestServiceServer server;
+  @Autowired private Client2HttpImpl client;
+  @Autowired private MockRestServiceServer server;
 
-    @Test
-    void idをパスに含めてGETで呼び出し_BFFで使わない項目は無視して変換する() {
-        server.expect(requestTo("http://api2.test/api2/001"))
-                .andExpect(method(HttpMethod.GET))
-                .andRespond(
-                        withSuccess(
-                                JsonFixtures.read("api-response2/normal.json"),
-                                MediaType.APPLICATION_JSON));
+  @Test
+  void idをパスに含めてGETで呼び出し_BFFで使わない項目は無視して変換する() {
+    server
+        .expect(requestTo("http://api2.test/api2/001"))
+        .andExpect(method(HttpMethod.GET))
+        .andRespond(
+            withSuccess(
+                JsonFixtures.read("api-response2/normal.json"), MediaType.APPLICATION_JSON));
 
-        ApiResponse2 response = client.execute2(ApiRequest.builder().id("001").build());
+    ApiResponse2 response = client.execute2(ApiRequest.builder().id("001").build());
 
-        assertThat(response)
-                .isEqualTo(JsonFixtures.load("api-response2/normal.json", ApiResponse2.class));
-        server.verify();
-    }
+    assertThat(response)
+        .isEqualTo(JsonFixtures.load("api-response2/normal.json", ApiResponse2.class));
+    server.verify();
+  }
 
-    @Test
-    void 外部APIが404を返した場合は例外を送出する() {
-        server.expect(requestTo("http://api2.test/api2/999"))
-                .andRespond(withStatus(HttpStatus.NOT_FOUND));
+  @Test
+  void 外部APIが404を返した場合は例外を送出する() {
+    server
+        .expect(requestTo("http://api2.test/api2/999"))
+        .andRespond(withStatus(HttpStatus.NOT_FOUND));
 
-        assertThatThrownBy(() -> client.execute2(ApiRequest.builder().id("999").build()))
-                .isInstanceOf(HttpClientErrorException.NotFound.class);
-    }
+    assertThatThrownBy(() -> client.execute2(ApiRequest.builder().id("999").build()))
+        .isInstanceOf(HttpClientErrorException.NotFound.class);
+  }
 }

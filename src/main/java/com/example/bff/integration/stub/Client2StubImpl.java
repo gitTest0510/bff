@@ -11,20 +11,20 @@ import org.springframework.stereotype.Service;
 /** 外部API_2 のスタブ. 固定値を返す. */
 @Service
 @ConditionalOnProperty(
-        name = ClientType.PROPERTY,
-        havingValue = ClientType.STUB,
-        matchIfMissing = true)
+    name = ClientType.PROPERTY,
+    havingValue = ClientType.STUB,
+    matchIfMissing = true)
 public class Client2StubImpl implements Client2 {
-    @Override
-    public ApiResponse2 execute2(ApiRequest apiRequest) {
-        return new ApiResponse2(
-                "ApiResponse2",
-                List.of(
-                        new ApiResponse2.MyDetail("ApiResponse2_name1", 1, "ApiResponse2_memo1"),
-                        new ApiResponse2.MyDetail("ApiResponse2_name2", 2, "ApiResponse2_memo2"),
-                        new ApiResponse2.MyDetail("main", 3, "ApiResponse2_memo3"),
-                        new ApiResponse2.MyDetail("main", 4, "ApiResponse2_memo4"),
-                        new ApiResponse2.MyDetail("sub", 5, "ApiResponse2_memo5"),
-                        new ApiResponse2.MyDetail("main", 6, "ApiResponse2_memo6")));
-    }
+  @Override
+  public ApiResponse2 execute2(ApiRequest apiRequest) {
+    return new ApiResponse2(
+        "ApiResponse2",
+        List.of(
+            new ApiResponse2.MyDetail("ApiResponse2_name1", 1, "ApiResponse2_memo1"),
+            new ApiResponse2.MyDetail("ApiResponse2_name2", 2, "ApiResponse2_memo2"),
+            new ApiResponse2.MyDetail("main", 3, "ApiResponse2_memo3"),
+            new ApiResponse2.MyDetail("main", 4, "ApiResponse2_memo4"),
+            new ApiResponse2.MyDetail("sub", 5, "ApiResponse2_memo5"),
+            new ApiResponse2.MyDetail("main", 6, "ApiResponse2_memo6")));
+  }
 }

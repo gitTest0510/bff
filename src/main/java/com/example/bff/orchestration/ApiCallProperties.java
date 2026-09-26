@@ -12,4 +12,4 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  */
 @ConfigurationProperties("bff.api-call")
 public record ApiCallProperties(
-        @DefaultValue("3s") Duration timeout, @DefaultValue("10") int fanOutConcurrency) {}
+    @DefaultValue("3s") Duration timeout, @DefaultValue("10") int fanOutConcurrency) {}

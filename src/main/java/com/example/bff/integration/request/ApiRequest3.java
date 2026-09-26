@@ -11,6 +11,6 @@ import lombok.Value;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ApiRequest3 {
 
-    /** 外部API_2 の明細名. */
-    String name;
+  /** 外部API_2 の明細名. */
+  String name;
 }

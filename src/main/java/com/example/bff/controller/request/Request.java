@@ -19,6 +19,6 @@ import lombok.extern.jackson.Jacksonized;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Request {
 
-    /** No. */
-    @NotBlank String no;
+  /** No. */
+  @NotBlank String no;
 }

@@ -11,5 +11,5 @@ import lombok.Value;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ApiRequest {
 
-    String id;
+  String id;
 }

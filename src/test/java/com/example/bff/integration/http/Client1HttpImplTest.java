@@ -20,39 +20,39 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.HttpServerErrorException;
 
 @RestClientTest(
-        components = Client1HttpImpl.class,
-        properties = {
-            "bff.client.type=http",
-            "bff.client.api1.base-url=http://api1.test",
-            "bff.client.api2.base-url=http://api2.test",
-            "bff.client.api3.base-url=http://api3.test"
-        })
+    components = Client1HttpImpl.class,
+    properties = {
+      "bff.client.type=http",
+      "bff.client.api1.base-url=http://api1.test",
+      "bff.client.api2.base-url=http://api2.test",
+      "bff.client.api3.base-url=http://api3.test"
+    })
 @Import(HttpClientConfig.class)
 class Client1HttpImplTest {
 
-    @Autowired private Client1HttpImpl client;
-    @Autowired private MockRestServiceServer server;
+  @Autowired private Client1HttpImpl client;
+  @Autowired private MockRestServiceServer server;
 
-    @Test
-    void idをクエリパラメータにしてGETで呼び出しレスポンスを変換する() {
-        server.expect(requestTo("http://api1.test/api1?id=001"))
-                .andExpect(method(HttpMethod.GET))
-                .andRespond(
-                        withSuccess(
-                                JsonFixtures.read("api-response1/normal.json"),
-                                MediaType.APPLICATION_JSON));
+  @Test
+  void idをクエリパラメータにしてGETで呼び出しレスポンスを変換する() {
+    server
+        .expect(requestTo("http://api1.test/api1?id=001"))
+        .andExpect(method(HttpMethod.GET))
+        .andRespond(
+            withSuccess(
+                JsonFixtures.read("api-response1/normal.json"), MediaType.APPLICATION_JSON));
 
-        ApiResponse1 response = client.execute1(ApiRequest.builder().id("001").build());
+    ApiResponse1 response = client.execute1(ApiRequest.builder().id("001").build());
 
-        assertThat(response).isEqualTo(new ApiResponse1("res1"));
-        server.verify();
-    }
+    assertThat(response).isEqualTo(new ApiResponse1("res1"));
+    server.verify();
+  }
 
-    @Test
-    void 外部APIが5xxを返した場合は例外を送出する() {
-        server.expect(requestTo("http://api1.test/api1?id=001")).andRespond(withServerError());
+  @Test
+  void 外部APIが5xxを返した場合は例外を送出する() {
+    server.expect(requestTo("http://api1.test/api1?id=001")).andRespond(withServerError());
 
-        assertThatThrownBy(() -> client.execute1(ApiRequest.builder().id("001").build()))
-                .isInstanceOf(HttpServerErrorException.class);
-    }
+    assertThatThrownBy(() -> client.execute1(ApiRequest.builder().id("001").build()))
+        .isInstanceOf(HttpServerErrorException.class);
+  }
 }

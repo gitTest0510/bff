@@ -11,27 +11,27 @@ import tools.jackson.databind.json.JsonMapper;
 
 class RequestTest {
 
-    private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+  private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
-    @Test
-    void noが空の場合はバリデーションエラーになる() {
-        Set<ConstraintViolation<Request>> violations =
-                validator.validate(Request.builder().no(" ").build());
+  @Test
+  void noが空の場合はバリデーションエラーになる() {
+    Set<ConstraintViolation<Request>> violations =
+        validator.validate(Request.builder().no(" ").build());
 
-        assertThat(violations)
-                .singleElement()
-                .satisfies(v -> assertThat(v.getPropertyPath()).hasToString("no"));
-    }
+    assertThat(violations)
+        .singleElement()
+        .satisfies(v -> assertThat(v.getPropertyPath()).hasToString("no"));
+  }
 
-    @Test
-    void noが指定されていればバリデーションエラーにならない() {
-        assertThat(validator.validate(Request.builder().no("001").build())).isEmpty();
-    }
+  @Test
+  void noが指定されていればバリデーションエラーにならない() {
+    assertThat(validator.validate(Request.builder().no("001").build())).isEmpty();
+  }
 
-    @Test
-    void JSONボディからJacksonで生成できる() {
-        Request request = JsonMapper.builder().build().readValue("{\"no\":\"001\"}", Request.class);
+  @Test
+  void JSONボディからJacksonで生成できる() {
+    Request request = JsonMapper.builder().build().readValue("{\"no\":\"001\"}", Request.class);
 
-        assertThat(request.getNo()).isEqualTo("001");
-    }
+    assertThat(request.getNo()).isEqualTo("001");
+  }
 }

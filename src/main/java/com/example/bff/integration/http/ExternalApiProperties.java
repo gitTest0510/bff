@@ -19,12 +19,10 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 @ConfigurationProperties("bff.client")
 public record ExternalApiProperties(
-        @Valid @NotNull Endpoint api1,
-        @Valid @NotNull Endpoint api2,
-        @Valid @NotNull Endpoint api3) {
+    @Valid @NotNull Endpoint api1, @Valid @NotNull Endpoint api2, @Valid @NotNull Endpoint api3) {
 
-    /**
-     * @param baseUrl ベースURL（例: https://api1.example.com）
-     */
-    public record Endpoint(@NotNull URI baseUrl) {}
+  /**
+   * @param baseUrl ベースURL（例: https://api1.example.com）
+   */
+  public record Endpoint(@NotNull URI baseUrl) {}
 }
