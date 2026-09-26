@@ -1,10 +1,10 @@
 package com.example.bff.integration.http;
 
-import com.example.bff.integration.ClientType;
+import com.example.bff.integration.ExternalApiMode;
 import com.example.bff.integration.ExternalApiProperties;
 import com.example.bff.integration.request.ApiRequest3;
 import com.example.bff.integration.response.ApiResponse3;
-import com.example.bff.service.Client3;
+import com.example.bff.service.Api3Client;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -17,12 +17,12 @@ import org.springframework.web.client.RestClient;
  * <p>404 は「該当データなし」として null を返す. それ以外の 4xx / 5xx・通信エラー・タイムアウトは例外になり、呼び出し元（ApiCaller）が結果の扱いを決める.
  */
 @Service
-@ConditionalOnProperty(name = ClientType.API3_PROPERTY, havingValue = ClientType.HTTP)
-public class Client3HttpImpl implements Client3 {
+@ConditionalOnProperty(name = ExternalApiMode.API3, havingValue = ExternalApiMode.HTTP)
+public class Api3HttpClient implements Api3Client {
 
   private final RestClient restClient;
 
-  public Client3HttpImpl(RestClient.Builder builder, ExternalApiProperties properties) {
+  public Api3HttpClient(RestClient.Builder builder, ExternalApiProperties properties) {
     this.restClient = builder.baseUrl(properties.api3().baseUrl().toString()).build();
   }
 

@@ -9,7 +9,7 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.validation.annotation.Validated;
 
 /**
- * 外部APIクライアントの設定. API 毎に実装（スタブ / HTTP）と接続先を指定する.
+ * 外部APIの設定. API 毎にモード（スタブ / HTTP）と接続先を指定する.
  *
  * <p>タイムアウトは Spring Boot 標準の {@code spring.http.clients.connect-timeout} / {@code
  * spring.http.clients.read-timeout} で設定する.
@@ -19,26 +19,26 @@ import org.springframework.validation.annotation.Validated;
  * @param api3 外部API_3 の設定
  */
 @Validated
-@ConfigurationProperties("bff.client")
+@ConfigurationProperties("bff.external-api")
 public record ExternalApiProperties(
     @Valid @DefaultValue Endpoint api1,
     @Valid @DefaultValue Endpoint api2,
     @Valid @DefaultValue Endpoint api3) {
 
   /**
-   * @param type 実装の種類（{@value ClientType#STUB} / {@value ClientType#HTTP}）. 未設定ならスタブ
-   * @param baseUrl ベースURL（例: https://api1.example.com）. type が {@value ClientType#HTTP} のとき必須
+   * @param mode 動かし方（{@value ExternalApiMode#STUB} / {@value ExternalApiMode#HTTP}）. 未設定ならスタブ
+   * @param baseUrl ベースURL（例: https://api1.example.com）. mode が {@value ExternalApiMode#HTTP} のとき必須
    */
   public record Endpoint(
-      @DefaultValue(ClientType.STUB)
+      @DefaultValue(ExternalApiMode.STUB)
           @Pattern(regexp = "(?i)stub|http", message = "stub または http を指定してください")
-          String type,
+          String mode,
       URI baseUrl) {
 
     /** HTTP で呼び出すのに接続先が無い設定を、起動時にエラーにする. */
-    @AssertTrue(message = "type=http のときは base-url を指定してください")
+    @AssertTrue(message = "mode=http のときは base-url を指定してください")
     public boolean isBaseUrlConfigured() {
-      return !ClientType.HTTP.equalsIgnoreCase(type) || baseUrl != null;
+      return !ExternalApiMode.HTTP.equalsIgnoreCase(mode) || baseUrl != null;
     }
   }
 }

@@ -22,12 +22,15 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.HttpClientErrorException;
 
 @RestClientTest(
-    components = Client2HttpImpl.class,
-    properties = {"bff.client.api2.type=http", "bff.client.api2.base-url=http://api2.test"})
+    components = Api2HttpClient.class,
+    properties = {
+      "bff.external-api.api2.mode=http",
+      "bff.external-api.api2.base-url=http://api2.test"
+    })
 @Import(ExternalApiConfig.class)
-class Client2HttpImplTest {
+class Api2HttpClientTest {
 
-  @Autowired private Client2HttpImpl client;
+  @Autowired private Api2HttpClient client;
   @Autowired private MockRestServiceServer server;
 
   @Test

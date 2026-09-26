@@ -40,9 +40,9 @@ import tools.jackson.databind.json.JsonMapper;
  */
 @SpringBootTest(
     properties = {
-      "bff.client.api1.type=http",
-      "bff.client.api2.type=http",
-      "bff.client.api3.type=http",
+      "bff.external-api.api1.mode=http",
+      "bff.external-api.api2.mode=http",
+      "bff.external-api.api3.mode=http",
       "spring.http.clients.read-timeout=300ms",
       "bff.api-call.timeout=2s"
     })
@@ -65,9 +65,9 @@ class HttpClientIntegrationTest {
   @DynamicPropertySource
   static void externalApiProperties(DynamicPropertyRegistry registry) {
     String baseUrl = "http://localhost:" + SERVER.getAddress().getPort();
-    registry.add("bff.client.api1.base-url", () -> baseUrl);
-    registry.add("bff.client.api2.base-url", () -> baseUrl);
-    registry.add("bff.client.api3.base-url", () -> baseUrl);
+    registry.add("bff.external-api.api1.base-url", () -> baseUrl);
+    registry.add("bff.external-api.api2.base-url", () -> baseUrl);
+    registry.add("bff.external-api.api3.base-url", () -> baseUrl);
   }
 
   @AfterAll

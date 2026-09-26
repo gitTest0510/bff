@@ -1,10 +1,10 @@
 package com.example.bff.integration.http;
 
-import com.example.bff.integration.ClientType;
+import com.example.bff.integration.ExternalApiMode;
 import com.example.bff.integration.ExternalApiProperties;
 import com.example.bff.integration.request.ApiRequest;
 import com.example.bff.integration.response.ApiResponse2;
-import com.example.bff.service.Client2;
+import com.example.bff.service.Api2Client;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -15,12 +15,12 @@ import org.springframework.web.client.RestClient;
  * <p>4xx / 5xx・通信エラー・タイムアウトは例外になり、呼び出し元（ApiCaller）が結果の扱いを決める.
  */
 @Service
-@ConditionalOnProperty(name = ClientType.API2_PROPERTY, havingValue = ClientType.HTTP)
-public class Client2HttpImpl implements Client2 {
+@ConditionalOnProperty(name = ExternalApiMode.API2, havingValue = ExternalApiMode.HTTP)
+public class Api2HttpClient implements Api2Client {
 
   private final RestClient restClient;
 
-  public Client2HttpImpl(RestClient.Builder builder, ExternalApiProperties properties) {
+  public Api2HttpClient(RestClient.Builder builder, ExternalApiProperties properties) {
     this.restClient = builder.baseUrl(properties.api2().baseUrl().toString()).build();
   }
 

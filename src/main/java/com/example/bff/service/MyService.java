@@ -21,9 +21,9 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class MyService {
 
-  private final Client1 client1;
-  private final Client2 client2;
-  private final Client3 client3;
+  private final Api1Client api1Client;
+  private final Api2Client api2Client;
+  private final Api3Client api3Client;
   private final ExampleMapper mapper;
   private final ApiCaller apiCaller;
 
@@ -55,16 +55,16 @@ public class MyService {
   private ExampleAggregate fetch(ApiRequest apiRequest) {
     // API呼び出し
     CompletableFuture<Optional<ApiResponse1>> api1 =
-        apiCaller.callOrEmpty("API_1", () -> client1.execute1(apiRequest));
+        apiCaller.callOrEmpty("API_1", () -> api1Client.execute1(apiRequest));
     CompletableFuture<ApiResponse2> api2 =
-        apiCaller.callOrFail("API_2", () -> client2.execute2(apiRequest));
+        apiCaller.callOrFail("API_2", () -> api2Client.execute2(apiRequest));
     CompletableFuture<Map<String, ApiResponse3>> api3 =
         api2.thenCompose(
             apiResponse2 ->
                 apiCaller.fanOut(
                     "API_3",
                     detailNames(apiResponse2),
-                    name -> client3.execute3(mapper.toApiRequest3(name))));
+                    name -> api3Client.execute3(mapper.toApiRequest3(name))));
 
     apiCaller.awaitAll(api1, api2, api3);
 
