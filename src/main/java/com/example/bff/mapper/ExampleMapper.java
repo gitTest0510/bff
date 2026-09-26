@@ -26,7 +26,7 @@ public class ExampleMapper {
             return ApiRequest.builder().build();
         }
 
-        return ApiRequest.builder().id(request.getNo()).build();
+        return ApiRequest.builder().id(request.no()).build();
     }
 
     public ApiRequest3 toApiRequest3(String name) {
@@ -38,7 +38,7 @@ public class ExampleMapper {
         ApiResponse1 apiResponse1 = aggregate.getApiResponse1();
 
         return Response.builder()
-                .apiResponse1(Objects.isNull(apiResponse1) ? null : apiResponse1.getTest())
+                .apiResponse1(Objects.isNull(apiResponse1) ? null : apiResponse1.test())
                 .apiResponse2(toSection(aggregate))
                 .build();
     }
@@ -48,11 +48,11 @@ public class ExampleMapper {
         List<ApiResponse2.MyDetail> myDetails =
                 Objects.isNull(apiResponse2)
                         ? List.of()
-                        : Objects.requireNonNullElse(apiResponse2.getMyDetails(), List.of());
+                        : Objects.requireNonNullElse(apiResponse2.myDetails(), List.of());
         Map<String, ApiResponse3> apiResponse3ByName = aggregate.getApiResponse3ByName();
 
         return Response.Section.builder()
-                .summary(Objects.isNull(apiResponse2) ? null : apiResponse2.getSummary())
+                .summary(Objects.isNull(apiResponse2) ? null : apiResponse2.summary())
                 .main(toItems(myDetails, apiResponse3ByName, this::isMain))
                 .sub(toItems(myDetails, apiResponse3ByName, this::isSub))
                 .other(toItems(myDetails, apiResponse3ByName, this::isOther))
@@ -65,33 +65,33 @@ public class ExampleMapper {
             Predicate<String> nameCondition) {
         return myDetails.stream()
                 .filter(Objects::nonNull)
-                .filter(myDetail -> nameCondition.test(myDetail.getName()))
+                .filter(myDetail -> nameCondition.test(myDetail.name()))
                 // 明細名をキーに、対応する外部API_3の結果を引いて紐付ける
-                .map(myDetail -> toItem(myDetail, apiResponse3ByName.get(myDetail.getName())))
+                .map(myDetail -> toItem(myDetail, apiResponse3ByName.get(myDetail.name())))
                 .toList();
     }
 
     private Response.Item toItem(ApiResponse2.MyDetail myDetail, ApiResponse3 apiResponse3) {
         return Response.Item.builder()
-                .name(myDetail.getName())
-                .price(String.valueOf(myDetail.getPrice()))
-                .memo(myDetail.getMemo())
+                .name(myDetail.name())
+                .price(String.valueOf(myDetail.price()))
+                .memo(myDetail.memo())
                 .details(toDetails(apiResponse3))
                 .build();
     }
 
     private List<Response.Detail> toDetails(ApiResponse3 apiResponse3) {
-        if (Objects.isNull(apiResponse3) || Objects.isNull(apiResponse3.getMyDetail3())) {
+        if (Objects.isNull(apiResponse3) || Objects.isNull(apiResponse3.myDetail3())) {
             return List.of();
         }
 
-        ApiResponse3.MyDetail3 myDetail3 = apiResponse3.getMyDetail3();
+        ApiResponse3.MyDetail3 myDetail3 = apiResponse3.myDetail3();
         return List.of(
                 Response.Detail.builder()
-                        .name(apiResponse3.getTitle())
-                        .test(myDetail3.getTest())
-                        .test2(myDetail3.getTest2())
-                        .test3(myDetail3.getTest3())
+                        .name(apiResponse3.title())
+                        .test(myDetail3.test())
+                        .test2(myDetail3.test2())
+                        .test3(myDetail3.test3())
                         .build());
     }
 

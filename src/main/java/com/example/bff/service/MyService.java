@@ -75,12 +75,12 @@ public class MyService {
     }
 
     private static List<String> detailNames(ApiResponse2 apiResponse2) {
-        if (Objects.isNull(apiResponse2) || Objects.isNull(apiResponse2.getMyDetails())) {
+        if (Objects.isNull(apiResponse2) || Objects.isNull(apiResponse2.myDetails())) {
             return List.of();
         }
-        return apiResponse2.getMyDetails().stream()
+        return apiResponse2.myDetails().stream()
                 .filter(Objects::nonNull)
-                .map(ApiResponse2.MyDetail::getName)
+                .map(ApiResponse2.MyDetail::name)
                 .filter(Objects::nonNull)
                 .toList();
     }

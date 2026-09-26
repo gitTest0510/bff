@@ -1,15 +1,10 @@
 package com.example.bff.controller.request;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Getter
-@Setter
-@NoArgsConstructor
-public class Request {
-
-    /** No. */
-    @NotBlank private String no;
-}
+/**
+ * リクエストパラメータ. Spring のデータバインディングがコンストラクタ経由で生成する.
+ *
+ * @param no No.
+ */
+public record Request(@NotBlank String no) {}

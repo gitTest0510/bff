@@ -3,58 +3,75 @@ package com.example.bff.controller.response;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import java.util.List;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Singular;
+import lombok.Value;
 
-/** 最終レスポンス. JSON のキーは {@link JsonProperty} で明示し、Java のフィールド名とは切り離す. */
+/**
+ * 最終レスポンス. JSON のキーは {@link JsonProperty} で明示し、Java のフィールド名とは切り離す.
+ *
+ * <p>イミュータブル. 生成は各クラスの builder() からのみ行う. List 項目は {@link Singular} により、未設定なら空、設定時は変更不可のコピーを保持する.
+ */
 @JsonPropertyOrder({
     "Apiレスポンス1",
     "Apiレスポンス2",
 })
-@Getter
+@Value
 @Builder
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Response {
 
     @JsonProperty("Apiレスポンス1")
-    private String apiResponse1;
+    String apiResponse1;
 
     @JsonProperty("Apiレスポンス2")
-    private Section apiResponse2;
+    Section apiResponse2;
 
     @JsonPropertyOrder({
         "summary", "main", "sub", "other",
     })
-    @Getter
+    @Value
     @Builder
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class Section {
-        private String summary;
-        private List<Item> main;
-        private List<Item> sub;
-        private List<Item> other;
+        String summary;
+
+        @Singular("mainItem")
+        List<Item> main;
+
+        @Singular("subItem")
+        List<Item> sub;
+
+        @Singular("otherItem")
+        List<Item> other;
     }
 
     /** main / sub / other 共通の明細. */
     @JsonPropertyOrder({
         "name", "price", "memo", "details",
     })
-    @Getter
+    @Value
     @Builder
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class Item {
-        private String name;
-        private String price;
-        private String memo;
-        private List<Detail> details;
+        String name;
+        String price;
+        String memo;
+        @Singular List<Detail> details;
     }
 
     @JsonPropertyOrder({
         "name", "test", "test2", "test3",
     })
-    @Getter
+    @Value
     @Builder
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class Detail {
-        private String name;
-        private String test;
-        private String test2;
-        private String test3;
+        String name;
+        String test;
+        String test2;
+        String test3;
     }
 }

@@ -49,7 +49,7 @@ class ExampleControllerTest {
                 .andExpect(jsonPath("$.['Apiレスポンス1']").value("res1"))
                 .andExpect(jsonPath("$.['Apiレスポンス2'].summary").value("summary"));
 
-        verify(service).execute(argThat(request -> "001".equals(request.getNo())));
+        verify(service).execute(argThat(request -> "001".equals(request.no())));
     }
 
     @Test
