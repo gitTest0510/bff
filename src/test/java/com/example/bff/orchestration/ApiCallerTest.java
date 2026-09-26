@@ -15,7 +15,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 
+@ExtendWith(OutputCaptureExtension.class)
 class ApiCallerTest {
 
   private final ApiCaller apiCaller = apiCaller(Duration.ofSeconds(1), 10);
@@ -176,6 +180,54 @@ class ApiCallerTest {
     assertThatThrownBy(() -> apiCaller.awaitAll(future))
         .isInstanceOf(IllegalStateException.class)
         .hasCauseInstanceOf(Exception.class);
+  }
+
+  @Test
+  void 呼び出しごとにAPI名と結果と所要時間をログに出す(CapturedOutput output) {
+    apiCaller.awaitAll(apiCaller.callOrFail("API_1", () -> "ok"));
+
+    assertThat(output).containsPattern("外部API呼び出し api=API_1 result=成功 elapsed=\\d+ms");
+  }
+
+  @Test
+  void 結果がnullの場合は結果なしとしてログに出す(CapturedOutput output) {
+    apiCaller.callOrEmpty("API_1", () -> null).join();
+
+    assertThat(output).contains("外部API呼び出し api=API_1 result=成功(結果なし)");
+  }
+
+  @Test
+  void 失敗した場合は原因をログに出す(CapturedOutput output) {
+    apiCaller
+        .callOrEmpty(
+            "API_1",
+            () -> {
+              throw new IllegalStateException("down");
+            })
+        .join();
+
+    assertThat(output)
+        .containsPattern(
+            "外部API呼び出し api=API_1 result=失敗 elapsed=\\d+ms"
+                + " cause=java.lang.IllegalStateException: down");
+  }
+
+  @Test
+  void タイムアウトした場合はタイムアウトとしてログに出す(CapturedOutput output) {
+    ApiCaller shortTimeout = apiCaller(Duration.ofMillis(50), 10);
+
+    shortTimeout.callOrEmpty("API_1", () -> sleepAndReturn(1000, "late")).join();
+
+    assertThat(output).contains("外部API呼び出し api=API_1 result=失敗(タイムアウト)");
+  }
+
+  @Test
+  void fanOutはキーごとにどのデータに対する呼び出しかをログに出す(CapturedOutput output) {
+    apiCaller.fanOut("API_3", List.of("main", "sub"), key -> key).join();
+
+    assertThat(output)
+        .contains("外部API呼び出し api=API_3 key=main result=成功")
+        .contains("外部API呼び出し api=API_3 key=sub result=成功");
   }
 
   private static ApiCaller apiCaller(Duration timeout, int fanOutConcurrency) {

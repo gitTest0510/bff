@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.Nullable;
 
 /**
  * 外部API呼び出しを非同期で実行するための部品.
@@ -52,12 +53,7 @@ public class ApiCaller {
    * <p>失敗・タイムアウトで結果が得られなかった場合は {@link ExternalApiException} で完了し、処理全体を失敗させる.
    */
   public <T> CompletableFuture<T> callOrFail(String apiName, Supplier<T> call) {
-    return CompletableFuture.supplyAsync(call, executor)
-        .orTimeout(properties.timeout().toMillis(), TimeUnit.MILLISECONDS)
-        .exceptionally(
-            ex -> {
-              throw new ExternalApiException(apiName, unwrap(ex));
-            });
+    return callOrFail(apiName, null, call);
   }
 
   /**
@@ -66,13 +62,7 @@ public class ApiCaller {
    * <p>失敗・タイムアウトで結果が得られなかった場合はログを出し、{@link Optional#empty()} で続行する.
    */
   public <T> CompletableFuture<Optional<T>> callOrEmpty(String apiName, Supplier<T> call) {
-    return callOrFail(apiName, call)
-        .thenApply(Optional::ofNullable)
-        .exceptionally(
-            ex -> {
-              log.warn("外部API({})の呼び出しに失敗したため、結果なしで続行します", apiName, unwrap(ex));
-              return Optional.empty();
-            });
+    return callOrEmpty(apiName, null, call);
   }
 
   /**
@@ -94,7 +84,7 @@ public class ApiCaller {
         distinctKeys.stream()
             .map(
                 key ->
-                    callOrEmpty(apiName, () -> withPermit(permits, () -> call.apply(key)))
+                    callOrEmpty(apiName, key, () -> withPermit(permits, () -> call.apply(key)))
                         .thenApply(result -> result.map(value -> Map.entry(key, value))))
             .toList();
 
@@ -137,6 +127,62 @@ public class ApiCaller {
       }
       throw new IllegalStateException(cause);
     }
+  }
+
+  /**
+   * 外部APIを呼び出し、どの API をどんな結果で呼んだかを1回の呼び出しにつき1行ログに出す.
+   *
+   * <pre>
+   *   INFO 外部API呼び出し api=API_3 key=main result=成功 elapsed=8ms
+   *   WARN 外部API呼び出し api=API_3 key=bar result=失敗(タイムアウト) elapsed=2001ms cause=...
+   * </pre>
+   *
+   * <p>elapsed は呼び出しを開始してから完了（またはタイムアウト）するまでの時間. {@link #fanOut} では同時呼び出し数の制限による待ち時間も含む.
+   *
+   * @param key {@link #fanOut} のキー（どのデータに対する呼び出しか）. それ以外は null
+   */
+  private <T> CompletableFuture<T> callOrFail(
+      String apiName, @Nullable Object key, Supplier<T> call) {
+    String target = Objects.isNull(key) ? "api=" + apiName : "api=" + apiName + " key=" + key;
+    long startNanos = System.nanoTime();
+    return CompletableFuture.supplyAsync(call, executor)
+        .orTimeout(properties.timeout().toMillis(), TimeUnit.MILLISECONDS)
+        .handle(
+            (result, ex) -> {
+              long elapsedMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNanos);
+              if (Objects.isNull(ex)) {
+                log.info(
+                    "外部API呼び出し {} result={} elapsed={}ms",
+                    target,
+                    Objects.isNull(result) ? "成功(結果なし)" : "成功",
+                    elapsedMillis);
+                return result;
+              }
+              ExternalApiException failure = new ExternalApiException(apiName, unwrap(ex));
+              // スタックトレースは呼び出し元の扱い（続行 / 処理全体のエラー）を出すログに任せ、ここでは原因の要約だけを出す
+              log.warn(
+                  "外部API呼び出し {} result={} elapsed={}ms cause={}",
+                  target,
+                  failure.isTimeout() ? "失敗(タイムアウト)" : "失敗",
+                  elapsedMillis,
+                  String.valueOf(failure.getCause()));
+              throw failure;
+            });
+  }
+
+  private <T> CompletableFuture<Optional<T>> callOrEmpty(
+      String apiName, @Nullable Object key, Supplier<T> call) {
+    return callOrFail(apiName, key, call)
+        .thenApply(Optional::ofNullable)
+        .exceptionally(
+            ex -> {
+              log.warn(
+                  "外部API({})の呼び出しに失敗したため、結果なしで続行します{}",
+                  apiName,
+                  Objects.isNull(key) ? "" : "（key=" + key + "）",
+                  unwrap(ex));
+              return Optional.empty();
+            });
   }
 
   private static <T> T withPermit(Semaphore permits, Supplier<T> call) {
