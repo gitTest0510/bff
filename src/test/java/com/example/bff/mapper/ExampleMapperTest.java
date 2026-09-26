@@ -8,9 +8,10 @@ import com.example.bff.integration.request.ApiRequest;
 import com.example.bff.integration.response.ApiResponse1;
 import com.example.bff.integration.response.ApiResponse2;
 import com.example.bff.integration.response.ApiResponse3;
-import com.example.bff.model.DetailContext;
+import com.example.bff.model.ExampleAggregate;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class ExampleMapperTest {
@@ -38,51 +39,70 @@ class ExampleMapperTest {
     }
 
     @Test
-    void 明細名でmain_sub_otherに振り分け外部API_3の結果をdetailsに設定する() {
-        ApiResponse2 apiResponse2 = new ApiResponse2("summary", List.of());
-        List<DetailContext> contexts =
-                List.of(
-                        context("main", 1, response3("t1")),
-                        context("sub", 2, response3("t2")),
-                        context("foo", 3, response3("t3")),
-                        context("main", 4, null));
+    void 明細名でmain_sub_otherに振り分け明細名をキーに外部API_3の結果を紐付ける() {
+        ApiResponse2 apiResponse2 =
+                new ApiResponse2(
+                        "summary",
+                        List.of(
+                                detail("main", 1),
+                                detail("sub", 2),
+                                detail("foo", 3),
+                                detail("main", 4),
+                                detail("bar", 5)));
+        Map<String, ApiResponse3> apiResponse3ByName =
+                Map.of(
+                        "main", response3("t-main"),
+                        "sub", response3("t-sub"),
+                        "foo", response3("t-foo"));
 
-        Response response = mapper.toResponse(new ApiResponse1("res1"), apiResponse2, contexts);
+        Response response =
+                mapper.toResponse(
+                        new ExampleAggregate(
+                                new ApiResponse1("res1"), apiResponse2, apiResponse3ByName));
 
         assertThat(response.getApiResponse1()).isEqualTo("res1");
         Response.Section section = response.getApiResponse2();
         assertThat(section.getSummary()).isEqualTo("summary");
         assertThat(section.getMain()).extracting(Response.Item::getPrice).containsExactly("1", "4");
         assertThat(section.getSub()).extracting(Response.Item::getName).containsExactly("sub");
-        assertThat(section.getOther()).extracting(Response.Item::getName).containsExactly("foo");
+        assertThat(section.getOther())
+                .extracting(Response.Item::getName)
+                .containsExactly("foo", "bar");
 
-        Response.Item first = section.getMain().getFirst();
-        assertThat(first.getMemo()).isEqualTo("memo1");
-        assertThat(first.getDetails())
-                .singleElement()
-                .satisfies(
-                        detail -> {
-                            assertThat(detail.getName()).isEqualTo("t1");
-                            assertThat(detail.getTest()).isEqualTo("a");
-                            assertThat(detail.getTest2()).isEqualTo("b");
-                            assertThat(detail.getTest3()).isEqualTo("c");
-                        });
+        // 同じ明細名の明細には同じ外部API_3の結果が紐付く
+        assertThat(section.getMain())
+                .allSatisfy(
+                        item ->
+                                assertThat(item.getDetails())
+                                        .singleElement()
+                                        .satisfies(
+                                                detail -> {
+                                                    assertThat(detail.getName())
+                                                            .isEqualTo("t-main");
+                                                    assertThat(detail.getTest()).isEqualTo("a");
+                                                    assertThat(detail.getTest2()).isEqualTo("b");
+                                                    assertThat(detail.getTest3()).isEqualTo("c");
+                                                }));
+        assertThat(section.getMain().getFirst().getMemo()).isEqualTo("memo1");
         // 外部API_3の結果が無い明細は details が空
-        assertThat(section.getMain().get(1).getDetails()).isEmpty();
+        assertThat(section.getOther().get(1).getDetails()).isEmpty();
     }
 
     @Test
     void 外部API_3のMyDetail3がnullの場合はdetailsが空() {
-        List<DetailContext> contexts = List.of(context("main", 1, new ApiResponse3("t1", null)));
+        ApiResponse2 apiResponse2 = new ApiResponse2("summary", List.of(detail("main", 1)));
 
-        Response response = mapper.toResponse(null, null, contexts);
+        Response response =
+                mapper.toResponse(
+                        new ExampleAggregate(
+                                null, apiResponse2, Map.of("main", new ApiResponse3("t", null))));
 
         assertThat(response.getApiResponse2().getMain().getFirst().getDetails()).isEmpty();
     }
 
     @Test
-    void 各入力がnullでも取得できた部分だけでレスポンスを返す() {
-        Response response = mapper.toResponse(null, null, null);
+    void 外部APIの結果がnullでも取得できた部分だけでレスポンスを返す() {
+        Response response = mapper.toResponse(new ExampleAggregate(null, null, Map.of()));
 
         assertThat(response.getApiResponse1()).isNull();
         assertThat(response.getApiResponse2().getSummary()).isNull();
@@ -92,23 +112,31 @@ class ExampleMapperTest {
     }
 
     @Test
-    void null要素やMyDetailがnull_名前がnullの明細はどこにも振り分けない() {
-        List<DetailContext> contexts =
-                Arrays.asList(
-                        null,
-                        new DetailContext(null, response3("t")),
-                        context(null, 1, response3("t")));
+    void 明細リストがnullの場合は空のリストを返す() {
+        Response response =
+                mapper.toResponse(
+                        new ExampleAggregate(null, new ApiResponse2("s", null), Map.of()));
 
-        Response.Section section = mapper.toResponse(null, null, contexts).getApiResponse2();
+        assertThat(response.getApiResponse2().getSummary()).isEqualTo("s");
+        assertThat(response.getApiResponse2().getMain()).isEmpty();
+    }
+
+    @Test
+    void null要素や名前がnullの明細はどこにも振り分けない() {
+        ApiResponse2 apiResponse2 =
+                new ApiResponse2("summary", Arrays.asList(null, detail(null, 1)));
+
+        Response.Section section =
+                mapper.toResponse(new ExampleAggregate(null, apiResponse2, Map.of()))
+                        .getApiResponse2();
 
         assertThat(section.getMain()).isEmpty();
         assertThat(section.getSub()).isEmpty();
         assertThat(section.getOther()).isEmpty();
     }
 
-    private static DetailContext context(String name, int price, ApiResponse3 apiResponse3) {
-        return new DetailContext(
-                new ApiResponse2.MyDetail(name, price, "memo" + price), apiResponse3);
+    private static ApiResponse2.MyDetail detail(String name, int price) {
+        return new ApiResponse2.MyDetail(name, price, "memo" + price);
     }
 
     private static ApiResponse3 response3(String title) {

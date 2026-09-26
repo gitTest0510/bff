@@ -7,12 +7,14 @@ import com.example.bff.integration.request.ApiRequest3;
 import com.example.bff.integration.response.ApiResponse1;
 import com.example.bff.integration.response.ApiResponse2;
 import com.example.bff.integration.response.ApiResponse3;
-import com.example.bff.model.DetailContext;
+import com.example.bff.model.ExampleAggregate;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 import org.springframework.stereotype.Component;
 
+/** リクエスト・外部APIの結果の変換. 外部APIは呼び出さず、入力だけから結果を決める. */
 @Component
 public class ExampleMapper {
 
@@ -31,48 +33,50 @@ public class ExampleMapper {
         return ApiRequest3.builder().name(name).build();
     }
 
-    /** 各外部APIの結果から最終レスポンスを組み立てる. いずれかの結果が null でも、取得できた部分だけでレスポンスを返す. */
-    public Response toResponse(
-            ApiResponse1 apiResponse1,
-            ApiResponse2 apiResponse2,
-            List<DetailContext> detailContexts) {
+    /** 集約した外部APIの結果から最終レスポンスを組み立てる. 取得できなかった部分は null / 空で返す. */
+    public Response toResponse(ExampleAggregate aggregate) {
+        ApiResponse1 apiResponse1 = aggregate.apiResponse1();
 
         return Response.builder()
                 .apiResponse1(Objects.isNull(apiResponse1) ? null : apiResponse1.getTest())
-                .apiResponse2(toSection(apiResponse2, detailContexts))
+                .apiResponse2(toSection(aggregate))
                 .build();
     }
 
-    private Response.Section toSection(
-            ApiResponse2 apiResponse2, List<DetailContext> detailContexts) {
-        List<DetailContext> contexts = Objects.requireNonNullElse(detailContexts, List.of());
+    private Response.Section toSection(ExampleAggregate aggregate) {
+        ApiResponse2 apiResponse2 = aggregate.apiResponse2();
+        List<ApiResponse2.MyDetail> myDetails =
+                Objects.isNull(apiResponse2)
+                        ? List.of()
+                        : Objects.requireNonNullElse(apiResponse2.getMyDetails(), List.of());
+        Map<String, ApiResponse3> apiResponse3ByName = aggregate.apiResponse3ByName();
 
         return Response.Section.builder()
                 .summary(Objects.isNull(apiResponse2) ? null : apiResponse2.getSummary())
-                .main(toItems(contexts, this::isMain))
-                .sub(toItems(contexts, this::isSub))
-                .other(toItems(contexts, this::isOther))
+                .main(toItems(myDetails, apiResponse3ByName, this::isMain))
+                .sub(toItems(myDetails, apiResponse3ByName, this::isSub))
+                .other(toItems(myDetails, apiResponse3ByName, this::isOther))
                 .build();
     }
 
     private List<Response.Item> toItems(
-            List<DetailContext> contexts, Predicate<String> nameCondition) {
-        return contexts.stream()
+            List<ApiResponse2.MyDetail> myDetails,
+            Map<String, ApiResponse3> apiResponse3ByName,
+            Predicate<String> nameCondition) {
+        return myDetails.stream()
                 .filter(Objects::nonNull)
-                .filter(context -> Objects.nonNull(context.getMyDetail()))
-                .filter(context -> nameCondition.test(context.getMyDetail().getName()))
-                .map(this::toItem)
+                .filter(myDetail -> nameCondition.test(myDetail.getName()))
+                // 明細名をキーに、対応する外部API_3の結果を引いて紐付ける
+                .map(myDetail -> toItem(myDetail, apiResponse3ByName.get(myDetail.getName())))
                 .toList();
     }
 
-    private Response.Item toItem(DetailContext context) {
-        ApiResponse2.MyDetail myDetail = context.getMyDetail();
-
+    private Response.Item toItem(ApiResponse2.MyDetail myDetail, ApiResponse3 apiResponse3) {
         return Response.Item.builder()
                 .name(myDetail.getName())
                 .price(String.valueOf(myDetail.getPrice()))
                 .memo(myDetail.getMemo())
-                .details(toDetails(context.getApiResponse3()))
+                .details(toDetails(apiResponse3))
                 .build();
     }
 

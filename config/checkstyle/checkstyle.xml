@@ -5,7 +5,8 @@
 
 <!--
     プロジェクト用 Checkstyle 設定。
-    google_checks をベースに、インデント4スペース・行長120文字に調整している。
+    google_checks をベースに、行長120文字に調整している。
+    整形は Spotless (google-java-format AOSP) が担当し、Checkstyle は命名・コーディング規約を中心にチェックする。
 -->
 <module name="Checker">
     <property name="charset" value="UTF-8"/>
@@ -45,15 +46,7 @@
         <module name="ConstantName"/>
         <module name="StaticVariableName"/>
 
-        <!-- 書式 -->
-        <module name="Indentation">
-            <property name="basicOffset" value="4"/>
-            <property name="caseIndent" value="4"/>
-            <property name="throwsIndent" value="8"/>
-            <property name="lineWrappingIndentation" value="4"/>
-            <property name="arrayInitIndent" value="4"/>
-            <property name="forceStrictCondition" value="false"/>
-        </module>
+        <!-- 書式（インデントは Spotless / google-java-format に任せる. Indentation は switch 式等で判定が衝突するため使わない） -->
         <module name="LeftCurly"/>
         <module name="RightCurly"/>
         <module name="NeedBraces"/>

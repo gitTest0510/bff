@@ -5,10 +5,15 @@ import com.example.bff.controller.response.Response;
 import com.example.bff.integration.request.ApiRequest;
 import com.example.bff.integration.response.ApiResponse1;
 import com.example.bff.integration.response.ApiResponse2;
+import com.example.bff.integration.response.ApiResponse3;
 import com.example.bff.mapper.ExampleMapper;
-import com.example.bff.model.DetailContext;
+import com.example.bff.model.ExampleAggregate;
+import com.example.bff.orchestration.ApiCaller;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,37 +25,59 @@ public class MyService {
     private final Client2 client2;
     private final Client3 client3;
     private final ExampleMapper mapper;
+    private final ApiCaller apiCaller;
 
     public Response execute(Request request) {
-
-        // 共通的な外部APIリクエスト作成
-        ApiRequest apiRequest = mapper.toApiRequest(request);
-
-        // 外部API_1呼び出し
-        ApiResponse1 apiResponse1 = client1.execute1(apiRequest);
-        // 外部API_2呼び出し
-        ApiResponse2 apiResponse2 = client2.execute2(apiRequest);
-        // 外部API_2の明細ごとに外部API_3を呼び出し、明細と結果を紐付ける
-        List<DetailContext> detailContexts = toDetailContexts(apiResponse2);
-
-        return mapper.toResponse(apiResponse1, apiResponse2, detailContexts);
+        // 1. 外部APIを依存関係どおりに呼び出し、結果を集約する
+        ExampleAggregate aggregate = fetch(mapper.toApiRequest(request));
+        // 2. 集約した結果だけを使って最終レスポンスに変換する
+        return mapper.toResponse(aggregate);
     }
 
-    private List<DetailContext> toDetailContexts(ApiResponse2 apiResponse2) {
+    /**
+     * 外部APIの依存関係.
+     *
+     * <pre>
+     *   API_1 ─────────────────────────────┐
+     *   API_2 ──→ API_3 × 明細名の種類数 ───┴──→ ExampleAggregate
+     * </pre>
+     *
+     * <p>API_1 と API_2 は互いに独立しているため並列に呼び出す. API_3 は API_2 の結果に依存するため、API_2 の完了後に呼び出す.
+     *
+     * <p>結果が得られなかった場合の扱い:
+     *
+     * <ul>
+     *   <li>API_1: 無くても返せる（Apiレスポンス1 を null にして続行）
+     *   <li>API_2: 欠かせない（レスポンスの骨格になるため、処理全体をエラーにする）
+     *   <li>API_3: 無くても返せる（取得できなかった明細の details を空にして続行）
+     * </ul>
+     */
+    private ExampleAggregate fetch(ApiRequest apiRequest) {
+        CompletableFuture<Optional<ApiResponse1>> api1 =
+                apiCaller.callOrEmpty("API_1", () -> client1.execute1(apiRequest));
+        CompletableFuture<ApiResponse2> api2 =
+                apiCaller.callOrFail("API_2", () -> client2.execute2(apiRequest));
+        CompletableFuture<Map<String, ApiResponse3>> api3 =
+                api2.thenCompose(
+                        apiResponse2 ->
+                                apiCaller.fanOut(
+                                        "API_3",
+                                        detailNames(apiResponse2),
+                                        name -> client3.execute3(mapper.toApiRequest3(name))));
+
+        apiCaller.awaitAll(api1, api2, api3);
+
+        return new ExampleAggregate(api1.join().orElse(null), api2.join(), api3.join());
+    }
+
+    private static List<String> detailNames(ApiResponse2 apiResponse2) {
         if (Objects.isNull(apiResponse2) || Objects.isNull(apiResponse2.getMyDetails())) {
             return List.of();
         }
-
-        // 名前のない明細は main / sub / other のいずれにも該当しないため、外部API_3を呼ばずに除外する
         return apiResponse2.getMyDetails().stream()
                 .filter(Objects::nonNull)
-                .filter(myDetail -> Objects.nonNull(myDetail.getName()))
-                // 外部API_3複数回呼び出し（明細件数分の逐次呼び出し。並列化は今後検討）
-                .map(
-                        myDetail ->
-                                new DetailContext(
-                                        myDetail,
-                                        client3.execute3(mapper.toApiRequest3(myDetail.getName()))))
+                .map(ApiResponse2.MyDetail::getName)
+                .filter(Objects::nonNull)
                 .toList();
     }
 }

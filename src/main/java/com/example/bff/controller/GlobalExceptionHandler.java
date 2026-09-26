@@ -1,5 +1,6 @@
 package com.example.bff.controller;
 
+import com.example.bff.exception.ExternalApiException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -14,6 +15,14 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+
+    /** 欠かせない外部APIの結果が得られなかった場合、失敗なら 502、タイムアウトなら 504 を返す. 呼び出し先の詳細はログにのみ出す. */
+    @ExceptionHandler(ExternalApiException.class)
+    public ProblemDetail handleExternalApi(ExternalApiException ex) {
+        log.error(ex.getMessage(), ex);
+        HttpStatus status = ex.isTimeout() ? HttpStatus.GATEWAY_TIMEOUT : HttpStatus.BAD_GATEWAY;
+        return ProblemDetail.forStatusAndDetail(status, "外部APIの呼び出しに失敗しました");
+    }
 
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleUnexpected(Exception ex) {

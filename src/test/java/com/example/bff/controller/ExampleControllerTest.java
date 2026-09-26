@@ -12,8 +12,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.example.bff.controller.request.Request;
 import com.example.bff.controller.response.Response;
+import com.example.bff.exception.ExternalApiException;
 import com.example.bff.service.MyService;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -58,6 +60,27 @@ class ExampleControllerTest {
                 .andExpect(jsonPath("$.status").value(400));
 
         verify(service, never()).execute(any());
+    }
+
+    @Test
+    void 欠かせない外部APIの呼び出しに失敗した場合は502を返却する() throws Exception {
+        when(service.execute(any(Request.class)))
+                .thenThrow(new ExternalApiException("API_2", new IllegalStateException("down")));
+
+        mockMvc.perform(get("/example").param("no", "001"))
+                .andExpect(status().isBadGateway())
+                .andExpect(content().contentType("application/problem+json"))
+                .andExpect(jsonPath("$.detail").value("外部APIの呼び出しに失敗しました"));
+    }
+
+    @Test
+    void 欠かせない外部APIの呼び出しがタイムアウトした場合は504を返却する() throws Exception {
+        when(service.execute(any(Request.class)))
+                .thenThrow(new ExternalApiException("API_2", new TimeoutException()));
+
+        mockMvc.perform(get("/example").param("no", "001"))
+                .andExpect(status().isGatewayTimeout())
+                .andExpect(content().contentType("application/problem+json"));
     }
 
     @Test
