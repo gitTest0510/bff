@@ -6,6 +6,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -19,6 +20,7 @@ import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -58,6 +60,57 @@ class ExampleControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentType("application/problem+json"))
                 .andExpect(jsonPath("$.status").value(400));
+
+        verify(service, never()).execute(any());
+    }
+
+    @Test
+    void POSTでJSONボディを受け取りレスポンスをJSONで返却する() throws Exception {
+        when(service.execute(any(Request.class)))
+                .thenReturn(Response.builder().apiResponse1("res1").build());
+
+        mockMvc.perform(
+                        post("/example/search")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"no\":\"001\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.['Apiレスポンス1']").value("res1"));
+
+        verify(service).execute(argThat(request -> "001".equals(request.getNo())));
+    }
+
+    @Test
+    void POSTでnoが空の場合は400をProblemDetail形式で返却する() throws Exception {
+        mockMvc.perform(
+                        post("/example/search")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"no\":\" \"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType("application/problem+json"))
+                .andExpect(jsonPath("$.status").value(400));
+
+        verify(service, never()).execute(any());
+    }
+
+    @Test
+    void POSTでJSONが不正な場合は400を返却する() throws Exception {
+        mockMvc.perform(
+                        post("/example/search")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"no\":"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType("application/problem+json"));
+
+        verify(service, never()).execute(any());
+    }
+
+    @Test
+    void POSTでJSON以外の形式の場合は415を返却する() throws Exception {
+        mockMvc.perform(
+                        post("/example/search")
+                                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                                .content("no=001"))
+                .andExpect(status().isUnsupportedMediaType());
 
         verify(service, never()).execute(any());
     }
