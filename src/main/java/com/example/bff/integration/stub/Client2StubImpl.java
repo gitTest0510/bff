@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 /** 外部API_2 のスタブ. 固定値を返す. */
 @Service
 @ConditionalOnProperty(
-    name = ClientType.PROPERTY,
+    name = ClientType.API2_PROPERTY,
     havingValue = ClientType.STUB,
     matchIfMissing = true)
 public class Client2StubImpl implements Client2 {

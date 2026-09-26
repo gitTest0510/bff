@@ -7,6 +7,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
+import com.example.bff.integration.ExternalApiConfig;
 import com.example.bff.integration.request.ApiRequest;
 import com.example.bff.integration.response.ApiResponse1;
 import com.example.bff.testsupport.JsonFixtures;
@@ -21,13 +22,8 @@ import org.springframework.web.client.HttpServerErrorException;
 
 @RestClientTest(
     components = Client1HttpImpl.class,
-    properties = {
-      "bff.client.type=http",
-      "bff.client.api1.base-url=http://api1.test",
-      "bff.client.api2.base-url=http://api2.test",
-      "bff.client.api3.base-url=http://api3.test"
-    })
-@Import(HttpClientConfig.class)
+    properties = {"bff.client.api1.type=http", "bff.client.api1.base-url=http://api1.test"})
+@Import(ExternalApiConfig.class)
 class Client1HttpImplTest {
 
   @Autowired private Client1HttpImpl client;

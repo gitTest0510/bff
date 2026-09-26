@@ -1,6 +1,7 @@
 package com.example.bff.integration.http;
 
 import com.example.bff.integration.ClientType;
+import com.example.bff.integration.ExternalApiProperties;
 import com.example.bff.integration.request.ApiRequest;
 import com.example.bff.integration.response.ApiResponse1;
 import com.example.bff.service.Client1;
@@ -14,7 +15,7 @@ import org.springframework.web.client.RestClient;
  * <p>4xx / 5xx・通信エラー・タイムアウトは例外になり、呼び出し元（ApiCaller）が結果の扱いを決める.
  */
 @Service
-@ConditionalOnProperty(name = ClientType.PROPERTY, havingValue = ClientType.HTTP)
+@ConditionalOnProperty(name = ClientType.API1_PROPERTY, havingValue = ClientType.HTTP)
 public class Client1HttpImpl implements Client1 {
 
   private final RestClient restClient;

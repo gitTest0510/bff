@@ -40,7 +40,9 @@ import tools.jackson.databind.json.JsonMapper;
  */
 @SpringBootTest(
     properties = {
-      "bff.client.type=http",
+      "bff.client.api1.type=http",
+      "bff.client.api2.type=http",
+      "bff.client.api3.type=http",
       "spring.http.clients.read-timeout=300ms",
       "bff.api-call.timeout=2s"
     })
