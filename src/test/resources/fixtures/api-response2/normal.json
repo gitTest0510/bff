@@ -1,0 +1,11 @@
+{
+  "summary": "summary",
+  "myDetails": [
+    { "name": "main", "price": 1, "memo": "memo1" },
+    { "name": "sub", "price": 2, "memo": "memo2" },
+    { "name": "foo", "price": 3, "memo": "memo3" },
+    { "name": "main", "price": 4, "memo": "memo4" },
+    { "name": "bar", "price": 5, "memo": "memo5" }
+  ],
+  "unusedField": "BFFでは使わない項目（外部APIの仕様上は存在する）"
+}

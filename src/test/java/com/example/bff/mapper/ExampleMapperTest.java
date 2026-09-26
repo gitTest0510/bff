@@ -9,6 +9,7 @@ import com.example.bff.integration.response.ApiResponse1;
 import com.example.bff.integration.response.ApiResponse2;
 import com.example.bff.integration.response.ApiResponse3;
 import com.example.bff.model.ExampleAggregate;
+import com.example.bff.testsupport.JsonFixtures;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -37,15 +38,9 @@ class ExampleMapperTest {
 
     @Test
     void 明細名でmain_sub_otherに振り分け明細名をキーに外部API_3の結果を紐付ける() {
+        // 明細: main(1), sub(2), foo(3), main(4), bar(5)
         ApiResponse2 apiResponse2 =
-                new ApiResponse2(
-                        "summary",
-                        List.of(
-                                detail("main", 1),
-                                detail("sub", 2),
-                                detail("foo", 3),
-                                detail("main", 4),
-                                detail("bar", 5)));
+                JsonFixtures.load("api-response2/normal.json", ApiResponse2.class);
         Map<String, ApiResponse3> apiResponse3ByName =
                 Map.of(
                         "main", response3("t-main"),
@@ -55,7 +50,9 @@ class ExampleMapperTest {
         Response response =
                 mapper.toResponse(
                         ExampleAggregate.builder()
-                                .apiResponse1(new ApiResponse1("res1"))
+                                .apiResponse1(
+                                        JsonFixtures.load(
+                                                "api-response1/normal.json", ApiResponse1.class))
                                 .apiResponse2(apiResponse2)
                                 .apiResponse3ByName(apiResponse3ByName)
                                 .build());

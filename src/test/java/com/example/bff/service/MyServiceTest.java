@@ -19,6 +19,7 @@ import com.example.bff.integration.response.ApiResponse3;
 import com.example.bff.mapper.ExampleMapper;
 import com.example.bff.orchestration.ApiCallProperties;
 import com.example.bff.orchestration.ApiCaller;
+import com.example.bff.testsupport.JsonFixtures;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
@@ -49,15 +50,12 @@ class MyServiceTest {
 
     @Test
     void 明細名ごとに外部API_3を1回だけ呼び出し明細に紐付ける() {
-        when(client1.execute1(any())).thenReturn(new ApiResponse1("res1"));
+        when(client1.execute1(any()))
+                .thenReturn(JsonFixtures.load("api-response1/normal.json", ApiResponse1.class));
+        // 明細: main(1), sub(2), foo(3), main(4), bar(5)
         when(client2.execute2(any()))
-                .thenReturn(
-                        new ApiResponse2(
-                                "summary",
-                                List.of(
-                                        new ApiResponse2.MyDetail("main", 1, "memo1"),
-                                        new ApiResponse2.MyDetail("main", 2, "memo2"),
-                                        new ApiResponse2.MyDetail("sub", 3, "memo3"))));
+                .thenReturn(JsonFixtures.load("api-response2/normal.json", ApiResponse2.class));
+        // 外部API_3 はリクエストの明細名ごとに異なる結果を返す
         when(client3.execute3(any(ApiRequest3.class)))
                 .thenAnswer(
                         invocation -> {
@@ -71,8 +69,8 @@ class MyServiceTest {
 
         verify(client1).execute1(argThat(req -> "001".equals(req.getId())));
         verify(client2).execute2(argThat(req -> "001".equals(req.getId())));
-        // main が2件あっても外部API_3の呼び出しは明細名の種類数（main, sub）の2回
-        verify(client3, times(2)).execute3(any());
+        // main が2件あっても外部API_3の呼び出しは明細名の種類数（main, sub, foo, bar）の4回
+        verify(client3, times(4)).execute3(any());
         assertThat(response.getApiResponse1()).isEqualTo("res1");
         assertThat(response.getApiResponse2().getMain())
                 .hasSize(2)
