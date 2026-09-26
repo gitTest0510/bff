@@ -1,10 +1,24 @@
 package com.example.bff.controller.request;
 
 import jakarta.validation.constraints.NotBlank;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Value;
+import lombok.extern.jackson.Jacksonized;
 
 /**
- * リクエストパラメータ. Spring のデータバインディングがコンストラクタ経由で生成する.
+ * 画面から受け取るリクエスト.
  *
- * @param no No.
+ * <p>イミュータブル. 実行時は Spring のデータバインディングが唯一のコンストラクタ経由で生成し、テスト等で自分で組み立てる場合は {@link #builder()} を使う.
+ * 項目数の多いリクエストでも同じ作りにするため、record ではなくクラスにしている.
  */
-public record Request(@NotBlank String no) {}
+@Value
+@Builder
+@Jacksonized
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class Request {
+
+    /** No. */
+    @NotBlank String no;
+}

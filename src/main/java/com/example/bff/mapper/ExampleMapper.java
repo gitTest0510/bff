@@ -26,7 +26,7 @@ public class ExampleMapper {
             return ApiRequest.builder().build();
         }
 
-        return ApiRequest.builder().id(request.no()).build();
+        return ApiRequest.builder().id(request.getNo()).build();
     }
 
     public ApiRequest3 toApiRequest3(String name) {

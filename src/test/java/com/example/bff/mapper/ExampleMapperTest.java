@@ -20,7 +20,7 @@ class ExampleMapperTest {
 
     @Test
     void RequestのnoをApiRequestのidに変換する() {
-        ApiRequest apiRequest = mapper.toApiRequest(new Request("001"));
+        ApiRequest apiRequest = mapper.toApiRequest(Request.builder().no("001").build());
 
         assertThat(apiRequest.getId()).isEqualTo("001");
     }

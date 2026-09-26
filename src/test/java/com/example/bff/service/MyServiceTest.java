@@ -168,6 +168,6 @@ class MyServiceTest {
     }
 
     private static Request request(String no) {
-        return new Request(no);
+        return Request.builder().no(no).build();
     }
 }
