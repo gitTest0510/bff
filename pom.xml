@@ -93,8 +93,8 @@
 			</plugin>
 
 			<!--
-				Spotless: google-java-format (AOSP=4スペース) でフォーマットを統一する.
-				verify フェーズで違反を検出し、整形は mvnw spotless:apply で行う.
+				Spotless: google-java-format (GOOGLE スタイル = インデント2スペース) でフォーマットを統一する.
+				validate フェーズで違反を検出し、整形は mvnw spotless:apply で行う.
 			-->
 			<plugin>
 				<groupId>com.diffplug.spotless</groupId>

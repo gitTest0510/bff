@@ -11,7 +11,8 @@ indent_size = 4
 [pom.xml]
 indent_style = tab
 
-[*.{yml,yaml}]
+# Java は Spotless（google-java-format の GOOGLE スタイル）に合わせる
+[*.{java,json,yml,yaml}]
 indent_size = 2
 
 [*.cmd]
