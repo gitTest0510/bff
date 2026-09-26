@@ -6,5 +6,7 @@ import lombok.Getter;
 @Getter
 @Builder
 public class ApiRequest3 {
-    private String apiResponse2_request_name;
+
+    /** 外部API_2 の明細名. */
+    private String name;
 }

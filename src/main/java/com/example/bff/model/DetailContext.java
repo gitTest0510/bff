@@ -4,14 +4,13 @@ import com.example.bff.integration.response.ApiResponse2;
 import com.example.bff.integration.response.ApiResponse3;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
+/**
+ * 外部API_2 の明細1件と、その明細をキーに呼び出した外部API_3 の結果の組.
+ */
 @Getter
-@Setter
-@NoArgsConstructor
 @AllArgsConstructor
 public class DetailContext {
-    private ApiResponse2 apiResponse2;
-    private ApiResponse3 apiResponse3;
+    private final ApiResponse2.MyDetail myDetail;
+    private final ApiResponse3 apiResponse3;
 }

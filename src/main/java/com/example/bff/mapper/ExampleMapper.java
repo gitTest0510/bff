@@ -8,14 +8,17 @@ import com.example.bff.integration.response.ApiResponse1;
 import com.example.bff.integration.response.ApiResponse2;
 import com.example.bff.integration.response.ApiResponse3;
 import com.example.bff.model.DetailContext;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
+import java.util.function.Predicate;
 
-@Service
+@Component
 public class ExampleMapper {
+
+    private static final String MAIN = "main";
+    private static final String SUB = "sub";
 
     public ApiRequest toApiRequest(Request request) {
         if (Objects.isNull(request)) {
@@ -27,101 +30,81 @@ public class ExampleMapper {
             .build();
     }
 
-    public ApiRequest3 toApiRequest3(String apiResponse2_name) {
+    public ApiRequest3 toApiRequest3(String name) {
         return ApiRequest3.builder()
-            .apiResponse2_request_name(apiResponse2_name)
+            .name(name)
             .build();
     }
 
-    public Response toResponse(ApiResponse1 apiResponse1, List<DetailContext> apiResponse2with3) {
-        if (Objects.isNull(apiResponse1)) {
-            return Response.builder().build();
-        }
-
-        return Response.builder()
-            .Apiレスポンス1(apiResponse1.getTest())
-            .Apiレスポンス2(toApiResponse2with3(apiResponse2with3))
-            .build();
-    }
-
-    private Response.Apiレスポンス2 toApiResponse2with3(List<DetailContext> apiResponse2with3) {
-        if (Objects.isNull(apiResponse2with3)) {
-            return Response.Apiレスポンス2.builder().build();
-        }
-
-        return Response.Apiレスポンス2.builder()
-            .summary(apiResponse2with3.getFirst().getApiResponse2().getSummary())
-            .main(toMain(apiResponse2.getMyDetails()))
-            .sub(toSub(apiResponse2.getMyDetails()))
-            .other(toOther(apiResponse2.getMyDetails()))
-            .build();
-    }
-
-    private List<Response.Apiレスポンス2.Details> toDetails(
+    /**
+     * 各外部APIの結果から最終レスポンスを組み立てる.
+     * いずれかの結果が null でも、取得できた部分だけでレスポンスを返す.
+     */
+    public Response toResponse(
+        ApiResponse1 apiResponse1,
+        ApiResponse2 apiResponse2,
         List<DetailContext> detailContexts) {
 
-        return detailContexts.stream()
-            .map(DetailContext::getApiResponse3)
-            .filter(Objects::nonNull)
-            .map(this::toDetail)
-            .toList();
-    }
-
-    private Response.Apiレスポンス2.Details toDetail(ApiResponse3 apiResponse3) {
-        return Response.Apiレスポンス2.Details.builder()
-            .name()
-            .test(apiResponse3.getMyDetail3().getTest())
-            .test2(apiResponse3.getMyDetail3().getTest2())
-            .test3(apiResponse3.getMyDetail3().getTest3())
+        return Response.builder()
+            .apiResponse1(Objects.isNull(apiResponse1) ? null : apiResponse1.getTest())
+            .apiResponse2(toSection(apiResponse2, detailContexts))
             .build();
     }
 
-    private List<Response.Apiレスポンス2.MainClazz> toMain(List<ApiResponse2.MyDetail> myDetailList) {
-        return myDetailList.stream()
-            .filter(this::isMain)
-            .map(record -> Response.Apiレスポンス2.MainClazz.builder()
-                .name(record.getName())
-                .price(String.valueOf(record.getPrice()))
-                .memo(record.getMemo())
-                .build()
-            ).toList();
+    private Response.Section toSection(ApiResponse2 apiResponse2, List<DetailContext> detailContexts) {
+        List<DetailContext> contexts = Objects.requireNonNullElse(detailContexts, List.of());
+
+        return Response.Section.builder()
+            .summary(Objects.isNull(apiResponse2) ? null : apiResponse2.getSummary())
+            .main(toItems(contexts, this::isMain))
+            .sub(toItems(contexts, this::isSub))
+            .other(toItems(contexts, this::isOther))
+            .build();
     }
 
-    private List<Response.Apiレスポンス2.SubClazz> toSub(List<ApiResponse2.MyDetail> myDetailList) {
-        return myDetailList.stream()
-            .filter(this::isSub)
-            .map(record -> Response.Apiレスポンス2.SubClazz.builder()
-                .name(record.getName())
-                .price(String.valueOf(record.getPrice()))
-                .memo(record.getMemo())
-                .build()
-            ).toList();
-    }
-
-    private List<Response.Apiレスポンス2.OtherClazz> toOther(List<ApiResponse2.MyDetail> myDetailList) {
-        return myDetailList.stream()
-            .filter(this::isOther)
-            .map(record -> Response.Apiレスポンス2.OtherClazz.builder()
-                .name(record.getName())
-                .price(String.valueOf(record.getPrice()))
-                .memo(record.getMemo())
-                .build())
+    private List<Response.Item> toItems(List<DetailContext> contexts, Predicate<String> nameCondition) {
+        return contexts.stream()
+            .filter(Objects::nonNull)
+            .filter(context -> Objects.nonNull(context.getMyDetail()))
+            .filter(context -> nameCondition.test(context.getMyDetail().getName()))
+            .map(this::toItem)
             .toList();
     }
 
-    private boolean isMain(ApiResponse2.MyDetail myDetail) {
-        return Objects.nonNull(myDetail) && "main".equals(myDetail.getName());
+    private Response.Item toItem(DetailContext context) {
+        ApiResponse2.MyDetail myDetail = context.getMyDetail();
+
+        return Response.Item.builder()
+            .name(myDetail.getName())
+            .price(String.valueOf(myDetail.getPrice()))
+            .memo(myDetail.getMemo())
+            .details(toDetails(context.getApiResponse3()))
+            .build();
     }
 
-    private boolean isSub(ApiResponse2.MyDetail myDetail) {
-        return Objects.nonNull(myDetail) && "sub".equals(myDetail.getName());
+    private List<Response.Detail> toDetails(ApiResponse3 apiResponse3) {
+        if (Objects.isNull(apiResponse3) || Objects.isNull(apiResponse3.getMyDetail3())) {
+            return List.of();
+        }
+
+        ApiResponse3.MyDetail3 myDetail3 = apiResponse3.getMyDetail3();
+        return List.of(Response.Detail.builder()
+            .name(apiResponse3.getTitle())
+            .test(myDetail3.getTest())
+            .test2(myDetail3.getTest2())
+            .test3(myDetail3.getTest3())
+            .build());
     }
 
-    private boolean isOther(ApiResponse2.MyDetail myDetail) {
-        return Objects.nonNull(myDetail)
-            && Objects.nonNull(myDetail.getName())
-            && !Set.of("main", "sub").contains(myDetail.getName());
+    private boolean isMain(String name) {
+        return MAIN.equals(name);
+    }
+
+    private boolean isSub(String name) {
+        return SUB.equals(name);
+    }
+
+    private boolean isOther(String name) {
+        return Objects.nonNull(name) && !MAIN.equals(name) && !SUB.equals(name);
     }
 }
-
-
