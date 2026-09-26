@@ -24,6 +24,10 @@
 		<spotbugs.version>4.10.4</spotbugs.version>
 		<jacoco-maven-plugin.version>0.8.15</jacoco-maven-plugin.version>
 		<jacoco.line.coverage.minimum>0.80</jacoco.line.coverage.minimum>
+
+		<!-- フォーマッター -->
+		<spotless-maven-plugin.version>3.10.3</spotless-maven-plugin.version>
+		<google-java-format.version>1.36.1</google-java-format.version>
 	</properties>
 
 	<dependencies>
@@ -77,6 +81,35 @@
 						</exclude>
 					</excludes>
 				</configuration>
+			</plugin>
+
+			<!--
+				Spotless: google-java-format (AOSP=4スペース) でフォーマットを統一する.
+				verify フェーズで違反を検出し、整形は mvnw spotless:apply で行う.
+			-->
+			<plugin>
+				<groupId>com.diffplug.spotless</groupId>
+				<artifactId>spotless-maven-plugin</artifactId>
+				<version>${spotless-maven-plugin.version}</version>
+				<configuration>
+					<java>
+						<googleJavaFormat>
+							<version>${google-java-format.version}</version>
+							<style>AOSP</style>
+							<reflowLongStrings>true</reflowLongStrings>
+						</googleJavaFormat>
+						<removeUnusedImports/>
+					</java>
+				</configuration>
+				<executions>
+					<execution>
+						<id>spotless-check</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 
 			<!-- Checkstyle: validate フェーズでコーディング規約をチェック -->

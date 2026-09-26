@@ -17,9 +17,7 @@ public class ExampleController {
 
     private final MyService service;
 
-    /**
-     * 参照系のため GET とし、検索条件はクエリパラメータで受け取る（例: GET /example?no=001）.
-     */
+    /** 参照系のため GET とし、検索条件はクエリパラメータで受け取る（例: GET /example?no=001）. */
     @GetMapping
     public Response get(@Valid @ModelAttribute Request request) {
         return service.execute(request);

@@ -1,5 +1,7 @@
 package com.example.bff.mapper;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.example.bff.controller.request.Request;
 import com.example.bff.controller.response.Response;
 import com.example.bff.integration.request.ApiRequest;
@@ -7,12 +9,9 @@ import com.example.bff.integration.response.ApiResponse1;
 import com.example.bff.integration.response.ApiResponse2;
 import com.example.bff.integration.response.ApiResponse3;
 import com.example.bff.model.DetailContext;
-import org.junit.jupiter.api.Test;
-
 import java.util.Arrays;
 import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 class ExampleMapperTest {
 
@@ -41,11 +40,12 @@ class ExampleMapperTest {
     @Test
     void 明細名でmain_sub_otherに振り分け外部API_3の結果をdetailsに設定する() {
         ApiResponse2 apiResponse2 = new ApiResponse2("summary", List.of());
-        List<DetailContext> contexts = List.of(
-            context("main", 1, response3("t1")),
-            context("sub", 2, response3("t2")),
-            context("foo", 3, response3("t3")),
-            context("main", 4, null));
+        List<DetailContext> contexts =
+                List.of(
+                        context("main", 1, response3("t1")),
+                        context("sub", 2, response3("t2")),
+                        context("foo", 3, response3("t3")),
+                        context("main", 4, null));
 
         Response response = mapper.toResponse(new ApiResponse1("res1"), apiResponse2, contexts);
 
@@ -58,20 +58,22 @@ class ExampleMapperTest {
 
         Response.Item first = section.getMain().getFirst();
         assertThat(first.getMemo()).isEqualTo("memo1");
-        assertThat(first.getDetails()).singleElement().satisfies(detail -> {
-            assertThat(detail.getName()).isEqualTo("t1");
-            assertThat(detail.getTest()).isEqualTo("a");
-            assertThat(detail.getTest2()).isEqualTo("b");
-            assertThat(detail.getTest3()).isEqualTo("c");
-        });
+        assertThat(first.getDetails())
+                .singleElement()
+                .satisfies(
+                        detail -> {
+                            assertThat(detail.getName()).isEqualTo("t1");
+                            assertThat(detail.getTest()).isEqualTo("a");
+                            assertThat(detail.getTest2()).isEqualTo("b");
+                            assertThat(detail.getTest3()).isEqualTo("c");
+                        });
         // 外部API_3の結果が無い明細は details が空
         assertThat(section.getMain().get(1).getDetails()).isEmpty();
     }
 
     @Test
     void 外部API_3のMyDetail3がnullの場合はdetailsが空() {
-        List<DetailContext> contexts = List.of(
-            context("main", 1, new ApiResponse3("t1", null)));
+        List<DetailContext> contexts = List.of(context("main", 1, new ApiResponse3("t1", null)));
 
         Response response = mapper.toResponse(null, null, contexts);
 
@@ -91,10 +93,11 @@ class ExampleMapperTest {
 
     @Test
     void null要素やMyDetailがnull_名前がnullの明細はどこにも振り分けない() {
-        List<DetailContext> contexts = Arrays.asList(
-            null,
-            new DetailContext(null, response3("t")),
-            context(null, 1, response3("t")));
+        List<DetailContext> contexts =
+                Arrays.asList(
+                        null,
+                        new DetailContext(null, response3("t")),
+                        context(null, 1, response3("t")));
 
         Response.Section section = mapper.toResponse(null, null, contexts).getApiResponse2();
 
@@ -104,7 +107,8 @@ class ExampleMapperTest {
     }
 
     private static DetailContext context(String name, int price, ApiResponse3 apiResponse3) {
-        return new DetailContext(new ApiResponse2.MyDetail(name, price, "memo" + price), apiResponse3);
+        return new DetailContext(
+                new ApiResponse2.MyDetail(name, price, "memo" + price), apiResponse3);
     }
 
     private static ApiResponse3 response3(String title) {

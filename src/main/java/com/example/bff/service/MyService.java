@@ -7,11 +7,10 @@ import com.example.bff.integration.response.ApiResponse1;
 import com.example.bff.integration.response.ApiResponse2;
 import com.example.bff.mapper.ExampleMapper;
 import com.example.bff.model.DetailContext;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Objects;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
@@ -44,12 +43,14 @@ public class MyService {
 
         // 名前のない明細は main / sub / other のいずれにも該当しないため、外部API_3を呼ばずに除外する
         return apiResponse2.getMyDetails().stream()
-            .filter(Objects::nonNull)
-            .filter(myDetail -> Objects.nonNull(myDetail.getName()))
-            // 外部API_3複数回呼び出し（明細件数分の逐次呼び出し。並列化は今後検討）
-            .map(myDetail -> new DetailContext(
-                myDetail,
-                client3.execute3(mapper.toApiRequest3(myDetail.getName()))))
-            .toList();
+                .filter(Objects::nonNull)
+                .filter(myDetail -> Objects.nonNull(myDetail.getName()))
+                // 外部API_3複数回呼び出し（明細件数分の逐次呼び出し。並列化は今後検討）
+                .map(
+                        myDetail ->
+                                new DetailContext(
+                                        myDetail,
+                                        client3.execute3(mapper.toApiRequest3(myDetail.getName()))))
+                .toList();
     }
 }

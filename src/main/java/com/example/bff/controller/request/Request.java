@@ -11,6 +11,5 @@ import lombok.Setter;
 public class Request {
 
     /** No. */
-    @NotBlank
-    private String no;
+    @NotBlank private String no;
 }
