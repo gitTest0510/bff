@@ -1,5 +1,7 @@
 package com.example.bff.exception;
 
+import java.net.SocketTimeoutException;
+import java.net.http.HttpTimeoutException;
 import java.util.concurrent.TimeoutException;
 import lombok.Getter;
 
@@ -14,7 +16,20 @@ public class ExternalApiException extends RuntimeException {
         this.apiName = apiName;
     }
 
+    /**
+     * 失敗の原因がタイムアウトかどうか.
+     *
+     * <p>ApiCaller のタイムアウト（{@link TimeoutException}）に加え、HTTP クライアントの接続・読み取りタイムアウトも対象にする. HTTP
+     * クライアントの例外は ResourceAccessException 等に包まれるため、原因をたどって判定する.
+     */
     public boolean isTimeout() {
-        return getCause() instanceof TimeoutException;
+        for (Throwable cause = getCause(); cause != null; cause = cause.getCause()) {
+            if (cause instanceof TimeoutException
+                    || cause instanceof HttpTimeoutException
+                    || cause instanceof SocketTimeoutException) {
+                return true;
+            }
+        }
+        return false;
     }
 }

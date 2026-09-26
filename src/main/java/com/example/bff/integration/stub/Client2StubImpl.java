@@ -1,13 +1,20 @@
-package com.example.bff.integration;
+package com.example.bff.integration.stub;
 
+import com.example.bff.integration.ClientType;
 import com.example.bff.integration.request.ApiRequest;
 import com.example.bff.integration.response.ApiResponse2;
 import com.example.bff.service.Client2;
 import java.util.List;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
+/** 外部API_2 のスタブ. 固定値を返す. */
 @Service
-public class Client2Impl implements Client2 {
+@ConditionalOnProperty(
+        name = ClientType.PROPERTY,
+        havingValue = ClientType.STUB,
+        matchIfMissing = true)
+public class Client2StubImpl implements Client2 {
     @Override
     public ApiResponse2 execute2(ApiRequest apiRequest) {
         return new ApiResponse2(

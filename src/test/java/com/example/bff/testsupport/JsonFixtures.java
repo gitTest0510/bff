@@ -3,6 +3,7 @@ package com.example.bff.testsupport;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.json.JsonMapper;
@@ -27,10 +28,21 @@ public final class JsonFixtures {
      * @param path fixtures ディレクトリからの相対パス（例: {@code "api-response2/normal.json"}）
      */
     public static <T> T load(String path, Class<T> type) {
+        return MAPPER.readValue(read(path), type);
+    }
+
+    /**
+     * JSON ファイルを文字列のまま読み込む. 外部APIのモック（MockRestServiceServer 等）のレスポンス本文に使う.
+     *
+     * @param path fixtures ディレクトリからの相対パス（例: {@code "api-response2/normal.json"}）
+     */
+    public static String read(String path) {
         String resource = "/fixtures/" + path;
         try (InputStream in = JsonFixtures.class.getResourceAsStream(resource)) {
-            return MAPPER.readValue(
-                    Objects.requireNonNull(in, () -> "テスト用 JSON が見つかりません: " + resource), type);
+            return new String(
+                    Objects.requireNonNull(in, () -> "テスト用 JSON が見つかりません: " + resource)
+                            .readAllBytes(),
+                    StandardCharsets.UTF_8);
         } catch (IOException ex) {
             throw new UncheckedIOException(ex);
         }
